@@ -1,0 +1,18 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1200,height:1600}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-supabase.js','utf8')}));
+await p.route('https://fonts.**',r=>r.abort());
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(400);
+await p.check('#kindGap');
+console.log('wish selects', await p.locator('#wishBox select').count());
+await p.selectOption('#curRegion','안양(과천)');await p.selectOption('#wish0','수원');await p.selectOption('#wish1','용인');
+await p.check('#confirmOnce');
+console.log('msg (zone 을):', await p.textContent('#submitMsg'));
+await p.selectOption('#zone','gap');await p.fill('#gapStart','2016-03-01');await p.dispatchEvent('#gapStart','change');
+await p.check('#confirmOnce');
+console.log('msg (zone 갑):', JSON.stringify(await p.textContent('#submitMsg')), await p.textContent('#applySummary'));
+await p.click('#btnSubmit');await p.waitForTimeout(400);
+console.log((await p.textContent('#regionCards')).replace(/\s+/g,' '));
+await p.locator('#apply').screenshot({path:'test/apply2.png'});
+console.log('errors',errs);await b.close();})();

@@ -1,0 +1,17 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1200,height:1600}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-supabase.js','utf8')}));
+await p.route('https://fonts.**',r=>r.abort());
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(500);
+console.log('form visible', await p.isVisible('#applyForm'));
+console.log('btn disabled before', await p.isDisabled('#btnSubmit'), await p.textContent('#submitMsg'));
+await p.selectOption('#curRegion','안양(과천)');
+await p.selectOption('#wish0','수원');
+await p.check('#confirmOnce');
+console.log('btn disabled after', await p.isDisabled('#btnSubmit'), await p.textContent('#applySummary'));
+await p.click('#btnSubmit');await p.waitForTimeout(400);
+console.log('form hidden', !(await p.isVisible('#applyForm')), 'results', await p.isVisible('#results'));
+console.log((await p.textContent('#regionCards')).replace(/\s+/g,' '));
+await p.locator('#apply').screenshot({path:'test/apply.png'});
+console.log('errors',errs);await b.close();})();
