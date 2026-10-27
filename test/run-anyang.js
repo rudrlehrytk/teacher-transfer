@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1200,height:1700}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-gwannae.js','utf8')}));
+await p.route('https://fonts.**',r=>r.abort());
+await p.goto('file://'+process.cwd()+'/anyang.html');await p.waitForTimeout(400);
+console.log('zone row hidden', !(await p.isVisible('#zone')), 'couple hidden', !(await p.isVisible('#couple')), 'wishRegion hidden', !(await p.isVisible('#wishRegion')));
+console.log('sheet:', (await p.textContent('#sheet')).replace(/\s+/g,' ').slice(0,160));
+await p.selectOption('#curSchool','평촌초');await p.selectOption('#wish0','범계초');await p.check('#confirmOnce');
+console.log('summary', await p.textContent('#applySummary'), '| msg', await p.textContent('#submitMsg'));
+await p.click('#btnSubmit');await p.waitForTimeout(300);
+console.log((await p.textContent('#regionCards')).replace(/\s+/g,' '));
+await p.screenshot({path:'test/anyang.png',fullPage:true});
+console.log('errors',errs);await b.close();})();

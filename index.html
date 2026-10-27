@@ -144,6 +144,11 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 .ladder li em.g { background: var(--bad-soft); color: var(--bad); }
 .warn-text { color: var(--warn); }
 
+
+.pages { display: flex; gap: 6px; flex-wrap: wrap; }
+.pages a { font-size: 0.85rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; background: var(--paper); }
+.pages a[aria-current="page"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -151,6 +156,10 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 
 <div class="wrap">
   <header>
+    <nav class="pages" aria-label="모의지원 종류">
+  <a href="./" aria-current="page">관외전보 (시·군간)</a>
+  <a href="./anyang.html">안양과천 관내전보</a>
+</nav>
     <span class="tag">2026학년도 도 세부기준 · 66차 개정</span>
     <h1>경기 관외전보 점수 계산·모의지원</h1>
     <p>다른 시·군으로 전보를 낼 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 관내전보에는 지원청별 가산이 따로 있어 결과가 다를 수 있어요.</p>
@@ -260,7 +269,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
       <div class="fine">
         <p>근거: 2026학년도 경기도교육공무원인사관리세부기준(유치원, 초등) 제10·11·13·16조. 2027판이 나오면 바뀔 수 있어요.</p>
         <p>공식 계산이 아니에요. 실제 점수는 학교에서 받는 전보내신 자료로 확인하세요. 비율 가산은 항목마다 월 단위로 계산해 소수점을 버린 뒤 더해요(예: 18.5개월 → 18개월).</p>
-        <p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 점수(개월 수), 현재 지원청, 희망 시·군, 갑 만기·우대 여부만 저장돼요.</p>
+        <p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부만 저장돼요.</p>
       </div>
     </aside>
   </div>
@@ -475,7 +484,9 @@ function calc(input) {
   const pm = Math.max(0, Math.floor(+input.awardPM || 0));
   const mn = Math.max(0, Math.floor(+input.awardMinister || 0));
   const sp = Math.max(0, Math.floor(+input.awardSupt || 0));
-  if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `총리↑ ${pm}건×3월, 장관 ${mn}건×2월, 교육감 ${sp}건×1월`);
+  // 3월·2월·1월 단계의 이름은 기준마다 다르다(도: 총리↑/장관/교육감, 안양과천: 장관↑/교육감/교육장)
+  const AL = input.awardLabels || ['총리↑', '장관', '교육감'];
+  if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
 
   out.bonusMonths = out.items.reduce((s, i) => s + i.months, 0);
   out.totalMonths = base + out.bonusMonths;

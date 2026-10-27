@@ -153,7 +153,9 @@ function calc(input) {
   const pm = Math.max(0, Math.floor(+input.awardPM || 0));
   const mn = Math.max(0, Math.floor(+input.awardMinister || 0));
   const sp = Math.max(0, Math.floor(+input.awardSupt || 0));
-  if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `총리↑ ${pm}건×3월, 장관 ${mn}건×2월, 교육감 ${sp}건×1월`);
+  // 3월·2월·1월 단계의 이름은 기준마다 다르다(도: 총리↑/장관/교육감, 안양과천: 장관↑/교육감/교육장)
+  const AL = input.awardLabels || ['총리↑', '장관', '교육감'];
+  if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
 
   out.bonusMonths = out.items.reduce((s, i) => s + i.months, 0);
   out.totalMonths = base + out.bonusMonths;

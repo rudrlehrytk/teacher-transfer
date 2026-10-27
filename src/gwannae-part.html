@@ -1,0 +1,51 @@
+<section class="panel" id="apply" aria-labelledby="applyTitle">
+  <div class="panel-head">
+    <h2 id="applyTitle">안양과천 관내 모의 지원</h2>
+    <p>계산한 점수로 희망 학교에 지원하면, 같은 학교를 고른 다른 선생님들 사이에서 내 순위를 볼 수 있어요. 한 사람당 한 번만 지원할 수 있고, 제출하면 고칠 수 없어요.</p>
+  </div>
+
+  <div id="authBox" class="block">
+    <div id="signedOut">
+      <label for="email" class="lab">이메일로 로그인</label>
+      <div class="ctl">
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <button type="button" class="btn" id="btnLogin">로그인 링크 받기</button>
+      </div>
+      <p class="hint" id="loginMsg">메일로 온 링크를 누르면 이 페이지로 돌아와 로그인돼요. 이메일은 로그인에만 쓰고 순위 화면에는 나오지 않아요. 관외 모의지원과 같은 계정을 써요.</p>
+    </div>
+    <div id="signedIn" hidden>
+      <p class="who"><span id="whoEmail"></span> 로 로그인됨 <button type="button" class="btn-ghost" id="btnLogout">로그아웃</button></p>
+    </div>
+  </div>
+
+  <form id="applyForm" class="block" hidden>
+    <div class="row"><label for="curSchool">현임교</label>
+      <div class="ctl"><select id="curSchool" required></select></div></div>
+    <div class="row"><span class="lab">내신 구분<span class="hint">현임교에서 5년이 되면 만기예요. 갑구역 10년 만기자는 관내로 낼 수 없어 관외 모의지원을 이용해야 해요.</span></span>
+      <div class="ctl">
+        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반내신 (1희망)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindExpired" value="expired"> 현임교 만기내신 (1~4희망)</label>
+      </div></div>
+    <div class="row"><span class="lab">희망 학교<span class="hint" id="wishHint">일반내신은 1희망만 쓸 수 있어요.</span></span>
+      <div class="ctl wishes" id="wishBox"></div></div>
+    <div class="row"><span class="lab">전보 우대<span class="hint">경합하면 같은 명부 안에서 한 번 먼저 배정돼요.</span></span>
+      <div class="ctl"><label class="check"><input type="checkbox" id="priority"> 우대 대상에 해당 (58세 이상, 유공자, 70세 이상 노부모 부양, 중증장애, 경기교육대상 등)</label></div></div>
+    <div class="summary" id="applySummary"></div>
+    <div class="row"><span class="lab">확인</span>
+      <div class="ctl"><label class="check"><input type="checkbox" id="confirmOnce"> 한 번만 지원할 수 있고 제출 후에는 고칠 수 없다는 걸 확인했어요</label></div></div>
+    <div class="actions">
+      <button type="submit" class="btn" id="btnSubmit">이 점수로 지원하기</button>
+      <span class="hint" id="submitMsg"></span>
+    </div>
+  </form>
+
+  <div id="results" class="block" hidden>
+    <div class="res-head">
+      <h3>내 지원 결과</h3>
+      <button type="button" class="btn-ghost" id="btnRefresh">새로고침</button>
+    </div>
+    <div id="myApp"></div>
+    <div id="regionCards" class="cards"></div>
+    <p class="hint">학교별 빈자리는 공개되지 않아 순위만 보여 줘요. 안양과천은 현임교 만기자를 일반내신자보다 먼저 배정하고, 같은 구분 안에서는 우대 대상자 → 전보년수 순이에요. 동점이면 근무성적 → 교육경력 → 생년월일 순으로 정해지는데 이 값은 받지 않아서 "동점"으로만 표시해요. 참여자는 실제 내신자 중 일부라 실제 결과와 다를 수 있어요.</p>
+  </div>
+</section>
