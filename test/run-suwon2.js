@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch();const p=await b.newPage();
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-suwon.js','utf8')}));
+await p.route('https://fonts.**',r=>r.abort());
+await p.goto('file://'+process.cwd()+'/suwon.html');await p.waitForTimeout(400);
+console.log('general selects', await p.locator('#wishBox select').count());
+await p.fill('#startDate','2021-03-01');await p.waitForTimeout(100);
+console.log('expired auto', await p.isChecked('#kindExpired'), 'selects', await p.locator('#wishBox select').count());
+console.log('pill', (await p.textContent('#sheet')).match(/학교만기전보 · 6희망까지|일반전보 · 3희망 이내/)?.[0]);
+await p.selectOption('#curSchool','매탄초');await p.selectOption('#wish0','망포초');await p.selectOption('#wish1','영통초');await p.check('#confirmOnce');
+await p.click('#btnSubmit');await p.waitForTimeout(300);
+console.log((await p.textContent('#regionCards')).replace(/\s+/g,' '));
+console.log('errors',errs);await b.close();})();

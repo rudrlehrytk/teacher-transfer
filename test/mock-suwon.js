@@ -2,8 +2,8 @@
   const me = 'u-me';
   const rows = [
     { user_id: 'e1', current_school: '매탄초', wishes: ['영통초', '망포초'], is_expired: true, has_priority: false, total_months: 70 },
-    { user_id: 'g1', current_school: '권선초', wishes: ['영통초'], is_expired: false, has_priority: false, total_months: 120 },
-    { user_id: 'g2', current_school: '세류초', wishes: ['영통초'], is_expired: false, has_priority: true, total_months: 60 },
+    { user_id: 'g1', current_school: '권선초', wishes: ['망포초', '영통초'], is_expired: false, has_priority: false, total_months: 120 },
+    { user_id: 'g2', current_school: '세류초', wishes: ['영통초', '망포초', '태장초'], is_expired: false, has_priority: true, total_months: 60 },
     { user_id: 'e2', current_school: '원천초', wishes: ['망포초', '영통초'], is_expired: true, has_priority: false, total_months: 80 },
   ];
   window.supabase = { createClient() { return {

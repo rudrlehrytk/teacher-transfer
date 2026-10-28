@@ -297,12 +297,12 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <form id="applyForm" class="block" hidden>
     <div class="row"><label for="curSchool">현임교</label>
       <div class="ctl"><select id="curSchool" required></select></div></div>
-    <div class="row"><span class="lab">내신 구분<span class="hint">현임교에서 5년이 되면 만기예요. 수원 갑구역 10년 만기자는 관내로 낼 수 없어 관외 모의지원을 이용해야 해요.</span></span>
+    <div class="row"><span class="lab">내신 구분<span class="hint">현임교 5년 이상이면 학교만기전보, 2년 이상 5년 미만이면 일반전보예요. 수원 갑구역 10년 만기자는 관내로 낼 수 없어 관외 모의지원을 이용해야 해요.</span></span>
       <div class="ctl">
-        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반내신 (1희망)</label>
-        <label class="check"><input type="radio" name="kindSel" id="kindExpired" value="expired"> 현임교 만기내신 (1~4희망)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반전보 (3희망 이내, 현임교 2년 이상 5년 미만)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindExpired" value="expired"> 학교만기전보 (6희망까지, 현임교 5년 이상)</label>
       </div></div>
-    <div class="row"><span class="lab">희망 학교<span class="hint" id="wishHint">일반내신은 1희망만 쓸 수 있어요.</span></span>
+    <div class="row"><span class="lab">희망 학교<span class="hint" id="wishHint">일반전보는 3희망 이내로 써요.</span></span>
       <div class="ctl wishes" id="wishBox"></div></div>
     <div class="row"><span class="lab">전보 우대<span class="hint">경합하면 같은 명부 안에서 한 번 먼저 배정돼요.</span></span>
       <div class="ctl"><label class="check"><input type="checkbox" id="priority"> 우대 대상에 해당 (58세 이상, 국가유공자, 70세 이상 노부모 부양, 중증장애, 경기교육대상, 운동경기 지도 수상, 국악·고적대·관현악, 늘봄전담실장 2년 이상 등)</label></div></div>
@@ -322,7 +322,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
     </div>
     <div id="myApp"></div>
     <div id="regionCards" class="cards"></div>
-    <p class="hint">학교별 빈자리는 공개되지 않아 순위만 보여 줘요. 수원은 2027학년도부터 만기·일반 구분 없이 <strong>전보년수 순 통합 명부</strong>로 바뀌었어요(우대 대상자 먼저). 다만 학교 배치 순서 조항에는 "학교 만기전보자 → 일반전보자"가 남아 있어서, 만기자를 먼저 배정하는 것으로 볼 때의 순위도 함께 보여 줘요. 동점이면 근무성적 → 생년월일 순인데 이 값은 받지 않아서 "동점"으로만 표시해요. 참여자는 실제 내신자 중 일부라 실제 결과와 다를 수 있어요.</p>
+    <p class="hint">학교별 빈자리는 공개되지 않아 순위만 보여 줘요. 수원 관내전보는 ①학교만기전보 → ②일반전보 → ③타시도 교환 → ④타시군 전입 → ⑤타시도 전입 → ⑥신규 순으로 배정해요. 같은 구분 안에서는 우대 대상자 먼저, 그다음 전보년수(현임교 근무년수 + 가산년수, 만기자는 현임교 5년 + 가산년수) 순이에요. 동점이면 근무성적 → 생년월일 순인데 이 값은 받지 않아서 "동점"으로만 표시해요. 참여자는 실제 내신자 중 일부라 실제 결과와 다를 수 있어요.</p>
   </div>
 </section>
 </div>
@@ -674,6 +674,14 @@ function noiseMonths(g) {
   return roundMonths(serviceMD(from, ref, g.exclusions));
 }
 
+// 희망 수 표시를 수원 기준으로 (학교만기 6희망 / 일반 3희망 이내)
+const _calc = calc;
+calc = function (input) {
+  const r = _calc(input);
+  if (!r.errors.length) r.wishCount = r.sameSchoolExpired ? '학교만기전보 · 6희망까지' : '일반전보 · 3희망 이내';
+  return r;
+};
+
 const _gather = gather;
 gather = function () {
   const g = _gather();
@@ -706,7 +714,7 @@ let kindTouched = false;
 function renderWishInputs() {
   const r = currentCalc();
   if (!kindTouched && r.sameSchoolExpired) $('kindExpired').checked = true;
-  const n = isExpiredKind() ? 4 : 1;
+  const n = isExpiredKind() ? 6 : 3; // 수원: 학교만기 6희망, 일반 3희망 이내
   const box = $('wishBox');
   const prev = [...box.querySelectorAll('select')].map(s => s.value);
   box.innerHTML = '';
@@ -720,8 +728,8 @@ function renderWishInputs() {
     box.appendChild(s);
   }
   $('wishHint').textContent = isExpiredKind()
-    ? '현임교 만기내신은 1~4희망까지 쓸 수 있어요. 4희망까지 밀리면 다른 학교로 배정돼요.'
-    : '일반내신은 1희망만 쓸 수 있고, 밀리면 잔류해요.';
+    ? '학교만기전보는 6희망까지 써요. 일반전보자보다 먼저 배정되고, 6희망까지 밀리면 다른 학교로 배정돼요.'
+    : '일반전보는 3희망 이내로 써요. 만기전보자 배정이 끝난 뒤 배정되고, 3희망까지 밀리면 잔류해요.';
   renderApplySummary();
 }
 
@@ -746,8 +754,9 @@ function renderApplySummary() {
   const r = currentCalc();
   if (r.errors.length) { $('applySummary').textContent = ''; return; }
   const mismatch = isExpiredKind() && !r.sameSchoolExpired
-    ? ` · <span class="warn-text">계산기상 현임교 근무가 5년이 안 돼 아직 만기가 아니에요</span>` : '';
-  $('applySummary').innerHTML = `지원 점수: <strong>${fmtYM(r.totalMonths)}</strong> (현임교 ${fmtYM(r.baseMonths)} + 가산 ${fmtYM(r.bonusMonths)}) · ${isExpiredKind() ? '현임교 만기내신' : '일반내신'}${mismatch}`;
+    ? ` · <span class="warn-text">계산기상 현임교 근무가 5년이 안 돼 아직 만기가 아니에요</span>`
+    : (!isExpiredKind() && r.sameSchoolExpired ? ` · <span class="warn-text">현임교 5년 이상이면 학교만기전보 대상이에요</span>` : '');
+  $('applySummary').innerHTML = `지원 점수: <strong>${fmtYM(r.totalMonths)}</strong> (현임교 ${fmtYM(r.baseMonths)} + 가산 ${fmtYM(r.bonusMonths)}) · ${isExpiredKind() ? '학교만기전보' : '일반전보'}${mismatch}`;
   const err = validate();
   $('btnSubmit').disabled = !!err;
   $('submitMsg').textContent = err || '';
@@ -781,7 +790,7 @@ async function loadRankings() {
       <div><span class="k">지원 점수</span><span class="v">${fmtYM(a.total_months)}</span></div>
       <div><span class="k">현임교</span><span class="v">${esc(a.current_school)}</span></div>
       <div><span class="k">희망</span><span class="v">${a.wishes.map((w, i) => `${i + 1}. ${esc(w)}`).join(' &nbsp;')}</span></div>
-      <div><span class="k">내신 구분</span><span class="v">${a.is_expired ? '현임교 만기내신' : '일반내신'}${a.has_priority ? ' · 우대' : ''}</span></div>
+      <div><span class="k">내신 구분</span><span class="v">${a.is_expired ? '학교만기전보' : '일반전보'}${a.has_priority ? ' · 우대' : ''}</span></div>
     </div>`;
   const { data, error } = await sb.rpc('get_school_rankings', { p_cycle: CYCLE, p_district: DISTRICT });
   if (error) { $('regionCards').innerHTML = '<p class="err">순위를 불러오지 못했어요. 새로고침을 눌러 주세요.</p>'; return; }
@@ -791,30 +800,32 @@ async function loadRankings() {
   $('regionCards').innerHTML = a.wishes.map((w, i) => {
     const all = bySchool[w] || [];
     const first = all.filter(r => r.wish_order === 1 || r.is_me);
-    const merged = [...first].sort(byScore);              // 통합 명부
     const exp1 = first.filter(r => r.is_expired).sort(byScore);
     const gen1 = first.filter(r => !r.is_expired).sort(byScore);
     const expLater = all.filter(r => r.is_expired && r.wish_order > 1 && !r.is_me).length;
-    const me = merged.find(r => r.is_me);
-    const before = (list) => list.filter(r => !r.is_me && byScore(r, me) < 0).length;
-    const ahead = before(merged);
-    const ties = merged.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
-    const altRank = a.is_expired ? before(exp1) + 1 : exp1.length + before(gen1) + 1;
+    const genLater = all.filter(r => !r.is_expired && r.wish_order > 1 && !r.is_me).length;
+    // 배정 순서: 학교만기전보 → 일반전보. 같은 구분 안에서 우대 → 전보년수
+    const group = a.is_expired ? exp1 : gen1;
+    const me = group.find(r => r.is_me);
+    const ahead = (a.is_expired ? 0 : exp1.length) + group.filter(r => !r.is_me && byScore(r, me) < 0).length;
+    const ties = group.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
+    const total = exp1.length + gen1.length;
     const li = (r) => `<li class="${r.is_me ? 'me' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_expired ? '<em class="g">만기</em>' : ''}</li>`;
-    const ladder = merged.slice(0, 14).map(li).join('');
+    const ladder = [...exp1, ...gen1].slice(0, 14).map(li).join('');
     const notes = [];
-    if (altRank !== ahead + 1) notes.push(`만기자를 먼저 배정하는 것으로 보면 ${altRank}위예요.`);
-    if (expLater) notes.push(`2~4희망으로 쓴 만기자 ${expLater}명도 앞 희망에서 밀리면 이 학교에 지원될 수 있어요.`);
-    notes.push(a.is_expired
-      ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망 학교로 넘어가요.' : '마지막 희망이에요. 여기서도 밀리면 다른 학교로 배정돼요.')
-      : '일반내신은 여기서 밀리면 잔류해요.');
+    if (!a.is_expired && exp1.length) notes.push(`이 학교를 1희망으로 쓴 만기전보자 ${exp1.length}명이 일반전보자보다 먼저 배정돼요.`);
+    if (expLater) notes.push(`2~6희망으로 쓴 만기전보자 ${expLater}명도 앞 희망에서 밀리면 이 학교에 먼저 배정될 수 있어요.`);
+    if (!a.is_expired && genLater) notes.push(`2~3희망으로 쓴 일반전보자 ${genLater}명도 있어요. 점수가 나보다 높으면 앞 희망에서 밀렸을 때 경합할 수 있어요.`);
+    const last = i === a.wishes.length - 1;
+    notes.push(!last ? '여기서 밀리면 다음 희망 학교로 넘어가요.'
+      : a.is_expired ? '마지막 희망이에요. 여기서도 밀리면 다른 학교로 배정돼요.' : '마지막 희망이에요. 여기서도 밀리면 잔류해요.');
     return `<article class="card">
       <header><span class="tagw">${i + 1}희망</span><h4>${esc(w)}</h4></header>
-      <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${merged.length}명 (1희망 통합 명부 기준)</span></div>
+      <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${total}명 (1희망 기준, 만기전보자 먼저)</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
       ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
       <ol class="ladder">${ladder}</ol>
-      ${merged.length > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
+      ${total > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
     </article>`;
   }).join('');
 }
