@@ -98,6 +98,11 @@ function calc(input) {
     if (ok && !ok()) { out.warnings.push(`${label} 가산은 갑·을구역만 해당돼 빠졌습니다.`); continue; }
     add(label, v * r, `${v}개월 × ${r * 100}%`);
   }
+  // 지원청별 추가 비율 가산(수원: 체육교과전담 50%, 소음피해학교 50% 등) — [{label, months, rate}]
+  for (const e of input.extraPct || []) {
+    const v = capM(e.months);
+    if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
+  }
   const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
   if (wee) add('특수교육지원센터·Wee센터', wee, `${wee}개월 × 100%`);
 
@@ -115,7 +120,8 @@ function calc(input) {
   if (+input.yearsTotal > 5) out.warnings.push('1년 단위 경력 합계가 현임교 근무년수보다 깁니다. 현임교 경력만 인정됩니다.');
 
   const silseup = Math.max(0, Math.floor(+input.silseup || 0));
-  if (silseup) add('교육실습학교 직접 지도', silseup, `${silseup}년 × 1월`);
+  const silRate = input.silseupPerYear || 1; // 도 1년 1월, 수원 1년 3월
+  if (silseup) add('교육실습학교 직접 지도', silseup * silRate, `${silseup}년 × ${silRate}월`);
   const damunhwa = Math.max(0, Math.floor(+input.damunhwa || 0));
   if (damunhwa) add('다문화특별학급 담임', damunhwa, `${damunhwa}년 × 1월`);
 
@@ -155,7 +161,11 @@ function calc(input) {
   const sp = Math.max(0, Math.floor(+input.awardSupt || 0));
   // 3월·2월·1월 단계의 이름은 기준마다 다르다(도: 총리↑/장관/교육감, 안양과천: 장관↑/교육감/교육장)
   const AL = input.awardLabels || ['총리↑', '장관', '교육감'];
-  if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
+  if (input.awardTiers) { // 지원청별 표창 단계 [{label, count, months}] (수원: 총리4/장관3/교육감2/교육장1)
+    const t = input.awardTiers.map(a => ({ ...a, count: Math.max(0, Math.floor(+a.count || 0)) }));
+    const sum = t.reduce((s, a) => s + a.count * a.months, 0);
+    if (sum) add('표창', sum, t.filter(a => a.count).map(a => `${a.label} ${a.count}건×${a.months}월`).join(', '));
+  } else if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
 
   out.bonusMonths = out.items.reduce((s, i) => s + i.months, 0);
   out.totalMonths = base + out.bonusMonths;

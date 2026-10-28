@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수원 관내전보 모의지원</title>
+<meta name="description" content="수원 관내 초등 전보 전보년수를 계산하고 모의 지원으로 희망 학교 순위를 확인해요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+
+/* Layout: 왼쪽은 전보내신카드처럼 칸이 나뉜 입력 서식, 오른쪽은 따라오는 점수 계산서 */
+:root {
+  --bg: #f3f5f2;
+  --paper: #ffffff;
+  --ink: #1d2a26;
+  --muted: #5d6b66;
+  --line: #d5ddd8;
+  --accent: #1f6b5a;
+  --accent-soft: #e2efe9;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --bad: #a3302a;
+  --bad-soft: #f8e3e1;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121816; --paper: #1a2220; --ink: #e3ebe7; --muted: #9aaba4; --line: #2e3a36;
+    --accent: #6cc4ad; --accent-soft: #1d332d; --warn: #e5b465; --warn-soft: #33291a;
+    --bad: #f08b83; --bad-soft: #3a2220; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121816; --paper: #1a2220; --ink: #e3ebe7; --muted: #9aaba4; --line: #2e3a36;
+  --accent: #6cc4ad; --accent-soft: #1d332d; --warn: #e5b465; --warn-soft: #33291a;
+  --bad: #f08b83; --bad-soft: #3a2220; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 24px; }
+header h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.tag { display: inline-block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+form { display: grid; gap: 16px; min-width: 0; }
+fieldset { margin: 0; border: 1px solid var(--line); background: var(--paper); border-radius: 6px; padding: 0; min-width: 0; }
+legend { padding: 0; float: left; width: 100%; }
+legend span { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); font-weight: 600; }
+legend small { font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+.rows { clear: both; display: grid; }
+.row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px; padding: 10px 16px; border-bottom: 1px dashed var(--line); align-items: center; }
+.row:last-child { border-bottom: 0; }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+.row > label, .row > .lab { font-size: 0.9rem; color: var(--ink); }
+.row .hint { display: block; font-size: 0.78rem; color: var(--muted); }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+input[type="date"], input[type="number"], select {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 4px; padding: 6px 8px; min-width: 0;
+}
+input[type="number"] { width: 5.5em; font-family: var(--font-num); }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.unit { color: var(--muted); font-size: 0.85rem; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 0.9rem; }
+button { font: inherit; cursor: pointer; border-radius: 4px; }
+.btn-ghost { background: transparent; border: 1px dashed var(--line); color: var(--accent); padding: 4px 10px; font-size: 0.85rem; }
+.btn-x { background: transparent; border: 0; color: var(--muted); padding: 2px 6px; }
+.ex-list { display: grid; gap: 6px; }
+
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 12px; min-width: 0; }
+@media (max-width: 900px) { aside { position: static; } }
+.sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sheet-head { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sheet-head .k { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.04em; }
+.total { font-family: var(--font-num); font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.total small { font-family: var(--font-body); font-size: 0.9rem; color: var(--muted); font-weight: 400; margin-left: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+td { padding: 7px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.n { text-align: right; font-family: var(--font-num); white-space: nowrap; font-variant-numeric: tabular-nums; }
+td .b { display: block; color: var(--muted); font-size: 0.76rem; }
+tr.sum td { font-weight: 600; background: var(--accent-soft); }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; }
+.pill { font-size: 0.8rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
+.pill.ok { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.pill.warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+.pill.bad { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+.notes { margin: 0; padding: 0 16px 14px 32px; font-size: 0.82rem; color: var(--warn); display: grid; gap: 4px; }
+.err { padding: 12px 16px; color: var(--bad); }
+.fine { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.fine p { margin: 0 0 6px; }
+.sample { font-size: 0.8rem; color: var(--warn); background: var(--warn-soft); padding: 8px 12px; border-radius: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sample button { background: transparent; border: 1px solid currentColor; color: inherit; padding: 2px 8px; font-size: 0.78rem; }
+@media (prefers-reduced-motion: no-preference) { .total { transition: color .2s; } }
+
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; display: grid; }
+.panel-head { padding: 16px; border-bottom: 1px solid var(--line); }
+.panel-head h2 { margin: 0; font-size: 1.25rem; }
+.panel-head p { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.block { padding: 14px 16px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; min-width: 0; }
+.block:last-child { border-bottom: 0; }
+.block .row { padding: 6px 0; }
+.lab { font-size: 0.9rem; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 10px; min-width: 0; flex: 1 1 220px; max-width: 340px; }
+.btn { background: var(--accent); color: var(--paper); border: 0; padding: 8px 14px; font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.who { margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; }
+.wishes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.summary { background: var(--accent-soft); padding: 10px 12px; border-radius: 4px; font-size: 0.9rem; }
+.actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.res-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.res-head h3 { margin: 0; font-size: 1.05rem; }
+.mine { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; padding: 10px 12px; background: var(--bg); border-radius: 4px; }
+.mine .k { display: block; font-size: 0.75rem; color: var(--muted); }
+.mine .v { font-weight: 600; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.card header { display: flex; align-items: baseline; gap: 8px; }
+.card h4 { margin: 0; font-size: 1.05rem; }
+.tagw { font-size: 0.72rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 1px 7px; border-radius: 4px; }
+.rank { display: flex; align-items: baseline; gap: 6px; }
+.rank .big { font-family: var(--font-num); font-size: 2rem; font-weight: 600; }
+.rank .of { color: var(--muted); }
+.line { margin: 0; font-size: 0.85rem; }
+.line.muted { color: var(--muted); font-size: 0.78rem; }
+.ladder { margin: 4px 0 0; padding-left: 1.6em; font-family: var(--font-num); font-size: 0.85rem; display: grid; gap: 2px; }
+.ladder li span { font-variant-numeric: tabular-nums; }
+.ladder li em { font-style: normal; font-family: var(--font-body); font-size: 0.72rem; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--paper); }
+.ladder li em.p { background: var(--warn-soft); color: var(--warn); }
+.ladder li.me { color: var(--accent); font-weight: 600; }
+.err { color: var(--bad); }
+.ladder li em.g { background: var(--bad-soft); color: var(--bad); }
+.warn-text { color: var(--warn); }
+
+
+.pages { display: flex; gap: 6px; flex-wrap: wrap; }
+.pages a { font-size: 0.85rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; background: var(--paper); }
+.pages a[aria-current="page"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <nav class="pages" aria-label="모의지원 종류">
+  <a href="./">관외전보 (시·군간)</a>
+  <a href="./anyang.html">안양과천 관내전보</a>
+  <a href="./suwon.html" aria-current="page">수원 관내전보</a>
+</nav>
+    <span class="tag">2026학년도 도 세부기준 · 66차 개정</span>
+    <h1>수원 관내전보 점수 계산·모의지원</h1>
+    <p>다른 시·군으로 전보를 낼 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 관내전보에는 지원청별 가산이 따로 있어 결과가 다를 수 있어요.</p>
+  </header>
+
+  <div class="sample" id="sampleNote">처음 화면은 예시 교사의 값이에요. 내 정보로 바꿔 넣으세요. <button type="button" id="btnClear">모두 비우기</button></div>
+
+  <div class="cols">
+    <form id="f" autocomplete="off">
+      <fieldset>
+        <legend><span>기본 정보 <small>제13조 ⑥</small></span></legend>
+        <div class="rows">
+          <div class="row"><label for="refDate">전보 기준일<span class="hint">보통 3월 1일자</span></label>
+            <div class="ctl"><input type="date" id="refDate" value="2027-03-01"></div></div>
+          <div class="row"><label for="startDate">현임교 발령일</label>
+            <div class="ctl"><input type="date" id="startDate" value="2022-03-01"></div></div>
+          <div class="row"><span class="lab">휴직·연수파견·기관파견 기간<span class="hint">현임교 근무년수에서 빠져요. 휴가는 포함.</span></span>
+            <div class="ctl" style="display:grid;gap:6px">
+              <div class="ex-list" id="exList"></div>
+              <div><button type="button" class="btn-ghost" id="addEx">+ 기간 추가</button></div>
+            </div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span>현임교 인사구역 <small>제9조·지역가산표</small></span></legend>
+        <div class="rows">
+          <div class="row"><label for="zone">구역·급지<span class="hint">도 기준 [별표1] 인사구역 현황표 기준</span></label>
+            <div class="ctl"><select id="zone">
+              <option value="gap">갑구역 (가산 없음)</option>
+              <option value="eul" selected>을구역 (50%)</option>
+              <option value="byeongDaRa">병구역 다·라 (70%)</option>
+              <option value="byeongGaNa">병구역 가·나 (100%)</option>
+            </select></div></div>
+          <div class="row"><span class="lab">학교 규모</span>
+            <div class="ctl"><label class="check"><input type="checkbox" id="smallSchool"> 5학급 이하 학교 또는 분교장 (30%)</label></div></div>
+          <div class="row" id="gapRow"><label for="gapStart">이 지원청 갑구역 근무 시작일<span class="hint">10년이면 갑 만기. 지원청이 바뀌면 다시 셉니다.</span></label>
+            <div class="ctl"><input type="date" id="gapStart">
+              <label class="check"><input type="checkbox" id="gapExempt"> 58세 이상 등 계속근무 대상</label></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span>희망 시·군 <small>제11조 ⑥</small></span></legend>
+        <div class="rows">
+          <div class="row"><label for="wishRegion">1희망 시·군<span class="hint">과천→안양, 의왕→군포처럼 통합 단위로 지원해요</span></label>
+            <div class="ctl"><select id="wishRegion"></select></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span>업무 경력 (현임교) <small>업무가산표</small></span></legend>
+        <div class="rows">
+          <div class="row"><span class="lab">부장교사<span class="hint">1년에 3월, 6월~1년 미만 2월</span></span>
+            <div class="ctl"><input type="number" min="0" max="5" id="bujangFull" value="2"><span class="unit">년</span>
+              <input type="number" min="0" max="5" id="bujangHalf" value="0"><span class="unit">회 (6월~1년 미만)</span></div></div>
+          <div class="row"><span class="lab">6학년 담임<span class="hint">1년에 3월, 6월~1년 미만 2월</span></span>
+            <div class="ctl"><input type="number" min="0" max="5" id="grade6Full" value="1"><span class="unit">년</span>
+              <input type="number" min="0" max="5" id="grade6Half" value="0"><span class="unit">회 (6월~1년 미만)</span></div></div>
+          <div class="row"><span class="lab">보건·사서·전문상담<span class="hint">43학급 이상 근무, 보건은 특수학교 근무 포함</span></span>
+            <div class="ctl"><input type="number" min="0" max="5" id="big43Full" value="0"><span class="unit">년</span>
+              <input type="number" min="0" max="5" id="big43Half" value="0"><span class="unit">회 (6월~1년 미만)</span></div></div>
+          <div class="row"><label for="bokSik">복식학급 담당<span class="hint">갑·을구역, 30%</span></label>
+            <div class="ctl"><input type="number" min="0" max="60" id="bokSik" value="0"><span class="unit">개월</span></div></div>
+          <div class="row"><label for="sunhoe">순회담당(특수·전문상담)<span class="hint">학교 소속, 30%</span></label>
+            <div class="ctl"><input type="number" min="0" max="60" id="sunhoe" value="0"><span class="unit">개월</span></div></div>
+          <div class="row"><label for="tonghap">통합학급 교사<span class="hint">30%</span></label>
+            <div class="ctl"><input type="number" min="0" max="60" id="tonghap" value="0"><span class="unit">개월</span></div></div>
+          <div class="row"><label for="weeMonths">특수교육지원센터·Wee센터<span class="hint">현임기관 근무 100%</span></label>
+            <div class="ctl"><input type="number" min="0" max="60" id="weeMonths" value="0"><span class="unit">개월</span></div></div>
+          <div class="row"><label for="hyeoksin">혁신학교<span class="hint">2021.3.1. 이후 지정(재지정)교는 제외</span></label>
+            <div class="ctl"><select id="hyeoksin">
+              <option value="none">해당 없음</option>
+              <option value="before2017">2017학년도 이전 지정 (100%, 3년 이상)</option>
+              <option value="2017to2020">2017~2020 지정 (50%, 1년 이상)</option>
+            </select>
+            <input type="number" min="0" max="60" id="hyeoksinMonths" value="0"><span class="unit">개월 (지정 후)</span></div></div>
+          <div class="row"><label for="silseup">교육실습 직접 지도<span class="hint">1년에 1월</span></label>
+            <div class="ctl"><input type="number" min="0" max="5" id="silseup" value="0"><span class="unit">년</span></div></div>
+          <div class="row"><label for="damunhwa">다문화특별학급 담임<span class="hint">1년에 1월</span></label>
+            <div class="ctl"><input type="number" min="0" max="5" id="damunhwa" value="0"><span class="unit">년</span></div></div>
+          <div class="row"><label for="neulbomMonths">늘봄전담실장<span class="hint">2027.3.1.~, 임기 후 원직위 복귀, 50%</span></label>
+            <div class="ctl"><input type="number" min="0" max="60" id="neulbomMonths" value="0"><span class="unit">개월</span></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span>가족·표창 <small>기타가산표</small></span></legend>
+        <div class="rows">
+          <div class="row"><span class="lab">부부공무원<span class="hint">사립교원 포함. 배우자 근무 시·군을 희망할 때만 30%</span></span>
+            <div class="ctl"><label class="check"><input type="checkbox" id="couple"> 해당</label>
+              <select id="spouseRegion" aria-label="배우자 근무 시·군"></select></div></div>
+          <div class="row"><span class="lab">자녀<span class="hint">현임교 근무년수 50%, 둘 다 해당해도 1개만</span></span>
+            <div class="ctl"><label class="check"><input type="checkbox" id="threeKids"> 세 자녀 이상</label>
+              <label class="check"><input type="checkbox" id="twoInfants" checked> 영유아 2명(7세 이하)</label></div></div>
+          <div class="row"><span class="lab">표창<span class="hint">1년에 가장 높은 표창 1개만. 12.31. 기준</span></span>
+            <div class="ctl">
+              <span class="unit">총리 이상</span><input type="number" min="0" max="5" id="awardPM" value="0">
+              <span class="unit">장관</span><input type="number" min="0" max="5" id="awardMinister" value="0">
+              <span class="unit">교육감</span><input type="number" min="0" max="5" id="awardSupt" value="1"><span class="unit">건</span></div></div>
+        </div>
+      </fieldset>
+    </form>
+
+    <aside>
+      <div class="sheet" id="sheet" aria-live="polite"></div>
+      <div class="fine">
+        <p>근거: 2026학년도 경기도교육공무원인사관리세부기준(유치원, 초등) 제10·11·13·16조. 2027판이 나오면 바뀔 수 있어요.</p>
+        <p>공식 계산이 아니에요. 실제 점수는 학교에서 받는 전보내신 자료로 확인하세요. 비율 가산은 항목마다 월 단위로 계산해 소수점을 버린 뒤 더해요(예: 18.5개월 → 18개월).</p>
+        <p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부만 저장돼요.</p>
+      </div>
+    </aside>
+  </div>
+<section class="panel" id="apply" aria-labelledby="applyTitle">
+  <div class="panel-head">
+    <h2 id="applyTitle">수원 관내 모의 지원</h2>
+    <p>계산한 점수로 희망 학교에 지원하면, 같은 학교를 고른 다른 선생님들 사이에서 내 순위를 볼 수 있어요. 한 사람당 한 번만 지원할 수 있고, 제출하면 고칠 수 없어요.</p>
+  </div>
+
+  <div id="authBox" class="block">
+    <div id="signedOut">
+      <label for="email" class="lab">이메일로 로그인</label>
+      <div class="ctl">
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <button type="button" class="btn" id="btnLogin">로그인 링크 받기</button>
+      </div>
+      <p class="hint" id="loginMsg">메일로 온 링크를 누르면 이 페이지로 돌아와 로그인돼요. 이메일은 로그인에만 쓰고 순위 화면에는 나오지 않아요. 관외·안양과천 모의지원과 같은 계정을 써요.</p>
+    </div>
+    <div id="signedIn" hidden>
+      <p class="who"><span id="whoEmail"></span> 로 로그인됨 <button type="button" class="btn-ghost" id="btnLogout">로그아웃</button></p>
+    </div>
+  </div>
+
+  <form id="applyForm" class="block" hidden>
+    <div class="row"><label for="curSchool">현임교</label>
+      <div class="ctl"><select id="curSchool" required></select></div></div>
+    <div class="row"><span class="lab">내신 구분<span class="hint">현임교에서 5년이 되면 만기예요. 수원 갑구역 10년 만기자는 관내로 낼 수 없어 관외 모의지원을 이용해야 해요.</span></span>
+      <div class="ctl">
+        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반내신 (1희망)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindExpired" value="expired"> 현임교 만기내신 (1~4희망)</label>
+      </div></div>
+    <div class="row"><span class="lab">희망 학교<span class="hint" id="wishHint">일반내신은 1희망만 쓸 수 있어요.</span></span>
+      <div class="ctl wishes" id="wishBox"></div></div>
+    <div class="row"><span class="lab">전보 우대<span class="hint">경합하면 같은 명부 안에서 한 번 먼저 배정돼요.</span></span>
+      <div class="ctl"><label class="check"><input type="checkbox" id="priority"> 우대 대상에 해당 (58세 이상, 국가유공자, 70세 이상 노부모 부양, 중증장애, 경기교육대상, 운동경기 지도 수상, 국악·고적대·관현악, 늘봄전담실장 2년 이상 등)</label></div></div>
+    <div class="summary" id="applySummary"></div>
+    <div class="row"><span class="lab">확인</span>
+      <div class="ctl"><label class="check"><input type="checkbox" id="confirmOnce"> 한 번만 지원할 수 있고 제출 후에는 고칠 수 없다는 걸 확인했어요</label></div></div>
+    <div class="actions">
+      <button type="submit" class="btn" id="btnSubmit">이 점수로 지원하기</button>
+      <span class="hint" id="submitMsg"></span>
+    </div>
+  </form>
+
+  <div id="results" class="block" hidden>
+    <div class="res-head">
+      <h3>내 지원 결과</h3>
+      <button type="button" class="btn-ghost" id="btnRefresh">새로고침</button>
+    </div>
+    <div id="myApp"></div>
+    <div id="regionCards" class="cards"></div>
+    <p class="hint">학교별 빈자리는 공개되지 않아 순위만 보여 줘요. 수원은 2027학년도부터 만기·일반 구분 없이 <strong>전보년수 순 통합 명부</strong>로 바뀌었어요(우대 대상자 먼저). 다만 학교 배치 순서 조항에는 "학교 만기전보자 → 일반전보자"가 남아 있어서, 만기자를 먼저 배정하는 것으로 볼 때의 순위도 함께 보여 줘요. 동점이면 근무성적 → 생년월일 순인데 이 값은 받지 않아서 "동점"으로만 표시해요. 참여자는 실제 내신자 중 일부라 실제 결과와 다를 수 있어요.</p>
+  </div>
+</section>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// 경기 시·군간(관외) 전보년수 계산 — 2026학년도 도 세부기준(66차, 2025.7.14.)
+// 근거 조항은 각 줄 주석 참고.
+
+function parseDate(s) {
+  if (!s) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return null;
+  return { y: +m[1], m: +m[2], d: +m[3] };
+}
+
+// start(포함) ~ end(불포함) 사이를 {months, days}로. 달력 월 기준.
+function diffMD(a, b) {
+  let months = (b.y - a.y) * 12 + (b.m - a.m);
+  let days = b.d - a.d;
+  if (days < 0) {
+    months -= 1;
+    const prevMonthDays = new Date(b.y, b.m - 1, 0).getDate();
+    days += prevMonthDays;
+  }
+  if (months < 0) return { months: 0, days: 0 };
+  return { months, days };
+}
+
+function addDay(d) {
+  const t = new Date(d.y, d.m - 1, d.d + 1);
+  return { y: t.getFullYear(), m: t.getMonth() + 1, d: t.getDate() };
+}
+
+function cmp(a, b) {
+  return (a.y - b.y) || (a.m - b.m) || (a.d - b.d);
+}
+
+// 현임교 근무기간: 발령일~기준일(전보일 전날까지), 휴직·파견 제외 (13조⑥)
+function serviceMD(start, ref, exclusions) {
+  let { months, days } = diffMD(start, ref);
+  for (const ex of exclusions || []) {
+    const s = parseDate(ex.start), e = parseDate(ex.end);
+    if (!s || !e || cmp(e, s) < 0) continue;
+    const x = diffMD(s, addDay(e));
+    months -= x.months;
+    days -= x.days;
+  }
+  while (days < 0) { months -= 1; days += 30; }
+  while (days >= 30) { months += 1; days -= 30; }
+  if (months < 0) { months = 0; days = 0; }
+  return { months, days };
+}
+
+// 15일 이상 1월, 미만 버림 (13조⑥)
+function roundMonths(md) {
+  return md.months + (md.days >= 15 ? 1 : 0);
+}
+
+const REGION_RATE = { gap: 0, eul: 0.5, byeongDaRa: 0.7, byeongGaNa: 1.0 }; // 지역가산표
+const SMALL_RATE = 0.3; // 5학급 이하·분교장
+
+function calc(input) {
+  const ref = parseDate(input.refDate);
+  const start = parseDate(input.startDate);
+  const out = { items: [], warnings: [], errors: [] };
+  if (!ref || !start) { out.errors.push('전보일과 현임교 발령일을 입력하세요.'); return out; }
+  if (cmp(start, ref) >= 0) { out.errors.push('현임교 발령일이 전보일보다 늦습니다.'); return out; }
+
+  const md = serviceMD(start, ref, input.exclusions);
+  const rawMonths = roundMonths(md);
+  out.serviceMD = md;
+  out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가)
+  out.sameSchoolExpired = md.months >= 60;
+  const base = Math.min(rawMonths, 60); // 5년 상한
+  out.baseMonths = base;
+  out.baseCapped = rawMonths > 60;
+
+  const add = (label, months, basis) => {
+    const m = Math.max(0, Math.floor(months + 1e-9));
+    if (m > 0) out.items.push({ label, months: m, basis });
+  };
+  const capM = (v) => Math.min(Math.max(+v || 0, 0), base);
+
+  // 지역가산 (16조③ 지역가산표) — 구역 비율과 5학급 이하 30% 중 큰 값 1개
+  const zr = REGION_RATE[input.zone] ?? 0;
+  const sr = input.smallSchool ? SMALL_RATE : 0;
+  const rate = Math.max(zr, sr);
+  if (rate > 0) {
+    const name = { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone];
+    const label = sr > zr ? '지역가산(5학급 이하·분교장)' : `지역가산(${name})`;
+    add(label, base * rate, `현임교 ${base}개월 × ${Math.round(rate * 100)}%`);
+  }
+
+  // 업무가산 — 비율형
+  const pct = [
+    ['bokSik', '복식학급 담당', 0.3, () => input.zone === 'gap' || input.zone === 'eul'],
+    ['sunhoe', '순회담당(특수·전문상담)', 0.3],
+    ['tonghap', '통합학급', 0.3],
+  ];
+  for (const [k, label, r, ok] of pct) {
+    const v = capM(input[k]);
+    if (!v) continue;
+    if (ok && !ok()) { out.warnings.push(`${label} 가산은 갑·을구역만 해당돼 빠졌습니다.`); continue; }
+    add(label, v * r, `${v}개월 × ${r * 100}%`);
+  }
+  // 지원청별 추가 비율 가산(수원: 체육교과전담 50%, 소음피해학교 50% 등) — [{label, months, rate}]
+  for (const e of input.extraPct || []) {
+    const v = capM(e.months);
+    if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
+  }
+  const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
+  if (wee) add('특수교육지원센터·Wee센터', wee, `${wee}개월 × 100%`);
+
+  // 업무가산 — 1년 단위형 (1년에 3월, 6월~1년 미만 2월)
+  const yearly = [
+    ['bujang', '부장교사'],
+    ['grade6', '6학년 담임'],
+    ['big43', '보건·사서·전문상담 43학급 이상'],
+  ];
+  for (const [k, label] of yearly) {
+    const full = Math.max(0, Math.floor(+input[k + 'Full'] || 0));
+    const half = Math.max(0, Math.floor(+input[k + 'Half'] || 0));
+    if (full || half) add(label, full * 3 + half * 2, `1년 ${full}회 × 3월 + 6월~1년 미만 ${half}회 × 2월`);
+  }
+  if (+input.yearsTotal > 5) out.warnings.push('1년 단위 경력 합계가 현임교 근무년수보다 깁니다. 현임교 경력만 인정됩니다.');
+
+  const silseup = Math.max(0, Math.floor(+input.silseup || 0));
+  const silRate = input.silseupPerYear || 1; // 도 1년 1월, 수원 1년 3월
+  if (silseup) add('교육실습학교 직접 지도', silseup * silRate, `${silseup}년 × ${silRate}월`);
+  const damunhwa = Math.max(0, Math.floor(+input.damunhwa || 0));
+  if (damunhwa) add('다문화특별학급 담임', damunhwa, `${damunhwa}년 × 1월`);
+
+  // 혁신학교
+  const hm = capM(input.hyeoksinMonths);
+  if (hm && input.hyeoksin === 'before2017') {
+    if (hm >= 36) add('혁신학교(2017 이전 지정)', hm, `${hm}개월 × 100%`);
+    else out.warnings.push('혁신학교(2017 이전 지정) 가산은 지정 후 3년 이상 근무해야 합니다.');
+  } else if (hm && input.hyeoksin === '2017to2020') {
+    if (hm >= 12) add('혁신학교(2017~2020 지정)', hm * 0.5, `${hm}개월 × 50%`);
+    else out.warnings.push('혁신학교(2017년 이후 지정) 가산은 지정 후 1년 이상 근무해야 합니다.');
+  }
+
+  // 늘봄전담실장 (2027학년도부터)
+  const nb = Math.max(0, +input.neulbomMonths || 0);
+  if (nb) {
+    if (cmp(ref, { y: 2027, m: 3, d: 1 }) >= 0) add('늘봄전담실장 경력', nb * 0.5, `${nb}개월 × 50%`);
+    else out.warnings.push('늘봄전담실장 가산은 2027.3.1.자 전보부터 적용됩니다.');
+  }
+
+  // 기타가산
+  if (input.couple) {
+    if (input.spouseRegion && input.wishRegion && input.spouseRegion === input.wishRegion) {
+      add('부부공무원', base * 0.3, `현임교 ${base}개월 × 30%`);
+    } else {
+      out.warnings.push('부부 가산은 배우자가 근무하는 시·군을 희망할 때만 붙습니다.');
+    }
+  }
+  const kid = input.threeKids ? 0.5 : 0, baby = input.twoInfants ? 0.5 : 0;
+  if (kid || baby) {
+    const label = kid ? '세 자녀 이상' : '영유아 2명(7세 이하)';
+    add(label, base * 0.5, `현임교 ${base}개월 × 50%`);
+    if (kid && baby) out.warnings.push('세 자녀와 영유아 가산은 중복되지 않아 1개(50%)만 넣었습니다.');
+  }
+  const pm = Math.max(0, Math.floor(+input.awardPM || 0));
+  const mn = Math.max(0, Math.floor(+input.awardMinister || 0));
+  const sp = Math.max(0, Math.floor(+input.awardSupt || 0));
+  // 3월·2월·1월 단계의 이름은 기준마다 다르다(도: 총리↑/장관/교육감, 안양과천: 장관↑/교육감/교육장)
+  const AL = input.awardLabels || ['총리↑', '장관', '교육감'];
+  if (input.awardTiers) { // 지원청별 표창 단계 [{label, count, months}] (수원: 총리4/장관3/교육감2/교육장1)
+    const t = input.awardTiers.map(a => ({ ...a, count: Math.max(0, Math.floor(+a.count || 0)) }));
+    const sum = t.reduce((s, a) => s + a.count * a.months, 0);
+    if (sum) add('표창', sum, t.filter(a => a.count).map(a => `${a.label} ${a.count}건×${a.months}월`).join(', '));
+  } else if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
+
+  out.bonusMonths = out.items.reduce((s, i) => s + i.months, 0);
+  out.totalMonths = base + out.bonusMonths;
+
+  // 갑구역 만기 (10조①2) — 현 지원청 갑구역 근무 10년
+  const gs = parseDate(input.gapStart);
+  if (input.zone === 'gap' && gs && cmp(gs, ref) < 0) {
+    const g = roundMonths(diffMD(gs, ref));
+    out.gapMonths = g;
+    out.gapExpired = g >= 120 && !input.gapExempt;
+  }
+  out.wishCount = out.gapExpired ? '1~4희망' : '1희망';
+  return out;
+}
+
+function fmtYM(months) {
+  const y = Math.floor(months / 12), m = months % 12;
+  return `${y}년 ${m}월`;
+}
+
+
+
+const REGIONS = ['수원','성남','고양','용인','부천','안산','안양(과천)','구리남양주(구리·남양주)','의정부','평택','시흥','화성오산(화성·오산)','광명','군포의왕(군포·의왕)','광주하남(광주·하남)','김포','파주','이천','안성','양평','여주','가평','연천','포천','동두천양주(동두천·양주)'];
+const $ = (id) => document.getElementById(id);
+
+function fillRegions(sel, placeholder) {
+  sel.innerHTML = `<option value="">${placeholder}</option>` + REGIONS.map(r => `<option value="${r}">${r}</option>`).join('');
+}
+fillRegions($('wishRegion'), '선택 안 함');
+fillRegions($('spouseRegion'), '배우자 근무 시·군');
+$('wishRegion').value = '수원';
+
+let exSeq = 0;
+function addExRow(start = '', end = '') {
+  const id = ++exSeq;
+  const row = document.createElement('div');
+  row.className = 'ctl';
+  row.dataset.ex = id;
+  row.innerHTML = `<input type="date" id="exS${id}" aria-label="제외 시작일" value="${start}"><span class="unit">~</span><input type="date" id="exE${id}" aria-label="제외 종료일" value="${end}"><button type="button" class="btn-x" aria-label="기간 삭제">✕</button>`;
+  row.querySelector('button').addEventListener('click', () => { row.remove(); render(); });
+  $('exList').appendChild(row);
+}
+$('addEx').addEventListener('click', () => { addExRow(); });
+
+function gather() {
+  const num = (id) => +$(id).value || 0;
+  const exclusions = [...document.querySelectorAll('[data-ex]')].map(r => ({
+    start: r.querySelector('input[aria-label="제외 시작일"]').value,
+    end: r.querySelector('input[aria-label="제외 종료일"]').value,
+  }));
+  return {
+    refDate: $('refDate').value, startDate: $('startDate').value, exclusions,
+    zone: $('zone').value, smallSchool: $('smallSchool').checked,
+    gapStart: $('gapStart').value, gapExempt: $('gapExempt').checked,
+    wishRegion: $('wishRegion').value,
+    bujangFull: num('bujangFull'), bujangHalf: num('bujangHalf'),
+    grade6Full: num('grade6Full'), grade6Half: num('grade6Half'),
+    big43Full: num('big43Full'), big43Half: num('big43Half'),
+    bokSik: num('bokSik'), sunhoe: num('sunhoe'), tonghap: num('tonghap'), weeMonths: num('weeMonths'),
+    hyeoksin: $('hyeoksin').value, hyeoksinMonths: num('hyeoksinMonths'),
+    silseup: num('silseup'), damunhwa: num('damunhwa'), neulbomMonths: num('neulbomMonths'),
+    couple: $('couple').checked, spouseRegion: $('spouseRegion').value,
+    threeKids: $('threeKids').checked, twoInfants: $('twoInfants').checked,
+    awardPM: num('awardPM'), awardMinister: num('awardMinister'), awardSupt: num('awardSupt'),
+  };
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function render() {
+  $('gapRow').hidden = $('zone').value !== 'gap';
+  const r = calc(gather());
+  const sheet = $('sheet');
+  if (r.errors.length) { sheet.innerHTML = `<div class="err">${r.errors.map(esc).join('<br>')}</div>`; return; }
+  const yrs = (r.totalMonths / 12).toFixed(2);
+  const rows = r.items.map(i => `<tr><td>${esc(i.label)}<span class="b">${esc(i.basis)}</span></td><td class="n">+${i.months}월</td></tr>`).join('');
+  const md = r.serviceMD;
+  const pills = [];
+  pills.push(r.eligible ? '<span class="pill ok">내신 가능 (동일교 2년 이상)</span>' : '<span class="pill bad">내신 불가 (동일교 2년 미만)</span>');
+  if (r.sameSchoolExpired) pills.push('<span class="pill warn">동일교 5년 만기</span>');
+  if (r.gapExpired) pills.push('<span class="pill warn">갑구역 만기 · 관내 내신 불가</span>');
+  else if (r.gapMonths !== undefined) pills.push(`<span class="pill">갑구역 ${Math.floor(r.gapMonths/12)}년 ${r.gapMonths%12}월 근무</span>`);
+  pills.push(`<span class="pill">${r.wishCount}</span>`);
+  const notes = [...r.warnings];
+  if (r.gapExpired) notes.push('갑 만기자는 1~4희망까지 쓰고, 끝까지 경합하면 생활근거지를 고려해 임의 배정될 수 있어요.');
+  sheet.innerHTML = `
+    <div class="sheet-head"><div class="k">전보년수${$('wishRegion').value ? ' · 희망 ' + esc($('wishRegion').value) : ''}</div>
+      <div class="total">${fmtYM(r.totalMonths)}<small>${yrs}년</small></div></div>
+    <table>
+      <tr><td>현임교 근무년수<span class="b">실근무 ${md.months}개월 ${md.days}일 → ${r.baseCapped ? '5년 상한 적용' : '15일 이상 1월'}</span></td><td class="n">${fmtYM(r.baseMonths)}</td></tr>
+      ${rows}
+      <tr class="sum"><td>가산년수 합계</td><td class="n">+${fmtYM(r.bonusMonths)}</td></tr>
+    </table>
+    <div class="pills">${pills.join('')}</div>
+    ${notes.length ? `<ul class="notes">${notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}`;
+}
+
+$('f').addEventListener('input', render);
+$('f').addEventListener('change', render);
+$('f').addEventListener('submit', e => e.preventDefault());
+$('btnClear').addEventListener('click', () => {
+  $('f').querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
+  $('f').querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
+  $('startDate').value = ''; $('gapStart').value = ''; $('zone').value = 'gap';
+  $('hyeoksin').value = 'none'; $('wishRegion').value = ''; $('spouseRegion').value = '';
+  $('exList').innerHTML = '';
+  $('sampleNote').hidden = true;
+  render();
+});
+addExRow('2024-03-01', '2024-08-31');
+render();
+
+// 수원 관내전보 모의 지원 (Supabase)
+const SUPABASE_URL = 'https://ibpycwlzrxqtxlmbfemh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0RvlXiRgdJMZnDi1Gm1zBA_pWw9z5gV';
+const CYCLE = '2027-03';
+const DISTRICT = 'suwon';
+// 2027 수원 초등 100교 (갑 98 + 을 2: 매교·규장). 출처: 2027 수원 세부원칙 [별표1]
+const SCHOOLS = ['고색', '고현', '곡반', '곡선', '곡정', '광교', '광교호수', '구운', '권선', '규장', '글빛', '남수원', '남창', '능실', '다솔', '당수', '대선', '대평', '동수원', '망포', '매교', '매산', '매여울', '매원', '매탄', '매현', '명당', '명인', '산남', '산의', '상률', '상촌', '서평', '서호', '선행', '세곡', '세류', '송림', '송원', '송정', '송죽', '수성', '수원', '수원가온', '수원금곡', '수원금호', '수원동신', '수원매화', '수원선일', '수원신곡', '수원중촌', '수일', '숙지', '신성', '신영', '신풍', '안룡', '연무', '영덕', '영동', '영일', '영통', '영화', '오목', '오현', '우만', '원일', '원천', '율전', '율현', '이의', '인계', '일월', '입북', '잠원', '정자', '정천', '조원', '지동', '창용', '천일', '천천', '청명', '칠보', '탑동', '태장', '파장', '팔달', '한일', '호매실', '화서', '화양', '화홍', '황곡', '효동', '효성', '효원', '효정', '효천', '효탑'].map(s => s + '초');
+const EUL = ['매교초', '규장초'];
+// 소음피해학교 14교 — 현임교 근무년수 50% (2020.3.1. 이후 경력)
+const NOISE = ['고색', '고현', '구운', '당수', '서평', '서호', '수원금곡', '수원중촌', '안룡', '일월', '칠보', '탑동', '호매실', '효탑'].map(s => s + '초');
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let myApp = null;
+
+// ── 계산기를 수원 관내 기준으로 맞춘다 ──
+(function adaptCalculator() {
+  const rowOf = (id) => $(id) && $(id).closest('.row');
+  const hideRow = (id) => { rowOf(id).hidden = true; if ($(id).type === 'checkbox') $(id).checked = false; else $(id).value = 0; };
+  // 갑 98 + 을 2지만 지역가산 없음. 5학급 이하 30%는 2027.3.1. 이후 경력부터라 이번 전보엔 0
+  $('zone').value = 'gap';
+  rowOf('zone').hidden = true;
+  hideRow('smallSchool');
+  const note = document.createElement('div');
+  note.className = 'row';
+  note.innerHTML = '<span class="lab">인사구역</span><div class="ctl"><span class="hint">수원은 갑구역 98교, 을구역 2교(매교·규장)인데 지역가산은 없어요. 5학급 이하 30%는 2027.3.1. 이후 경력부터라 이번 전보에는 해당이 없어요. 매교·규장 근무자는 갑구역 근무 시작일을 비워 두세요.</span></div>';
+  rowOf('zone').after(note);
+  $('gapExempt').closest('label').lastChild.textContent = ' 계속근무·유예 대상 (58세 이상, 중증장애, 세 자녀 유예)';
+  // 관외용·수원에 없는 항목 숨김
+  $('wishRegion').value = '';
+  rowOf('wishRegion').closest('fieldset').hidden = true;
+  for (const id of ['couple', 'bokSik', 'sunhoe', 'weeMonths', 'neulbomMonths']) hideRow(id);
+  rowOf('silseup').querySelector('.hint').textContent = '1년에 3월';
+  // 수원에만 있는 업무가산
+  const add = (html) => { const d = document.createElement('div'); d.className = 'row'; d.innerHTML = html; return d; };
+  rowOf('tonghap').after(
+    add('<label for="peMonths">체육교과전담<span class="hint">2014.3.1.자부터, 체육 경력 50%</span></label><div class="ctl"><input type="number" min="0" max="60" id="peMonths" value="0"><span class="unit">개월</span></div>'),
+    add('<label for="bokhapMonths">복합특수학급 특수교사<span class="hint">담당 기간 50%</span></label><div class="ctl"><input type="number" min="0" max="60" id="bokhapMonths" value="0"><span class="unit">개월</span></div>'),
+    add('<label for="afterMonths">방과후학교 업무담당<span class="hint">2018.2.까지 경력만, 30%</span></label><div class="ctl"><input type="number" min="0" max="60" id="afterMonths" value="0"><span class="unit">개월</span></div>'),
+    add('<span class="lab">소음피해학교<span class="hint">2020.3.1. 이후 현임교 근무 50%. 아래 현임교를 고르면 자동으로 체크돼요.</span></span><div class="ctl"><label class="check"><input type="checkbox" id="noiseSchool"> 현임교가 소음피해학교 (고색·고현·구운·당수·서평·서호·수원금곡·수원중촌·안룡·일월·칠보·탑동·호매실·효탑)</label></div>'),
+  );
+  // 표창: 총리↑4 / 장관3 / 교육감2 / 교육장1
+  const ctl = $('awardPM').closest('.ctl');
+  const units = ctl.querySelectorAll('.unit');
+  units[0].textContent = '총리 이상'; units[1].textContent = '장관'; units[2].textContent = '교육감';
+  const eduLab = document.createElement('span'); eduLab.className = 'unit'; eduLab.textContent = '교육장';
+  const edu = document.createElement('input'); Object.assign(edu, { type: 'number', min: 0, max: 5, id: 'awardEdu', value: 0 });
+  $('awardSupt').after(eduLab, edu);
+  $('awardSupt').value = 0;
+  rowOf('awardPM').querySelector('.hint').textContent = '총리↑4월·장관3월·교육감2월·교육장1월. 1년에 가장 높은 표창 1개만, 12.31. 기준';
+  const basis = [...document.querySelectorAll('.fine p')].find(e => e.textContent.startsWith('근거'));
+  if (basis) basis.textContent = '근거: 2027학년도 경기도수원교육공무원인사관리세부원칙(유치원, 초등) 제6·7·9·12조와 가산표.';
+  document.querySelector('.tag').textContent = '2027학년도 수원 관내전보 세부원칙 · 2026.8.18. 개정';
+  document.querySelector('header p').textContent = '수원 안에서 학교를 옮길 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 2027학년도 수원 세부원칙의 가산표를 따랐어요.';
+})();
+
+// 소음피해학교: 2020.3.1. 이후 현임교 근무 개월(15일 이상 1월), 5년 상한은 엔진에서 처리
+function noiseMonths(g) {
+  const s = parseDate(g.startDate), ref = parseDate(g.refDate);
+  if (!s || !ref) return 0;
+  const from = cmp(s, { y: 2020, m: 3, d: 1 }) < 0 ? { y: 2020, m: 3, d: 1 } : s;
+  if (cmp(from, ref) >= 0) return 0;
+  return roundMonths(serviceMD(from, ref, g.exclusions));
+}
+
+const _gather = gather;
+gather = function () {
+  const g = _gather();
+  const num = (id) => +$(id).value || 0;
+  const extraPct = [
+    { label: '체육교과전담', months: num('peMonths'), rate: 0.5 },
+    { label: '복합특수학급 특수교사', months: num('bokhapMonths'), rate: 0.5 },
+    { label: '방과후학교 업무담당', months: num('afterMonths'), rate: 0.3 },
+  ];
+  if ($('noiseSchool').checked) extraPct.push({ label: '소음피해학교', months: noiseMonths(g), rate: 0.5 });
+  return {
+    ...g, zone: 'gap', smallSchool: false, couple: false, bokSik: 0, sunhoe: 0, weeMonths: 0, neulbomMonths: 0,
+    silseupPerYear: 3, extraPct,
+    awardTiers: [
+      { label: '총리↑', count: num('awardPM'), months: 4 }, { label: '장관', count: num('awardMinister'), months: 3 },
+      { label: '교육감', count: num('awardSupt'), months: 2 }, { label: '교육장', count: num('awardEdu'), months: 1 },
+    ],
+  };
+};
+function currentCalc() { return calc(gather()); }
+
+function schoolOptions(sel, placeholder) {
+  sel.innerHTML = `<option value="">${placeholder}</option>` + SCHOOLS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+}
+schoolOptions($('curSchool'), '선택하세요');
+
+const isExpiredKind = () => $('kindExpired').checked;
+let kindTouched = false;
+
+function renderWishInputs() {
+  const r = currentCalc();
+  if (!kindTouched && r.sameSchoolExpired) $('kindExpired').checked = true;
+  const n = isExpiredKind() ? 4 : 1;
+  const box = $('wishBox');
+  const prev = [...box.querySelectorAll('select')].map(s => s.value);
+  box.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('select');
+    s.id = 'wish' + i;
+    s.setAttribute('aria-label', `${i + 1}희망`);
+    schoolOptions(s, `${i + 1}희망${i ? ' (선택)' : ''}`);
+    s.value = prev[i] || '';
+    s.addEventListener('change', renderApplySummary);
+    box.appendChild(s);
+  }
+  $('wishHint').textContent = isExpiredKind()
+    ? '현임교 만기내신은 1~4희망까지 쓸 수 있어요. 4희망까지 밀리면 다른 학교로 배정돼요.'
+    : '일반내신은 1희망만 쓸 수 있고, 밀리면 잔류해요.';
+  renderApplySummary();
+}
+
+const readWishes = () => [...$('wishBox').querySelectorAll('select')].map(s => s.value).filter(Boolean);
+
+function validate() {
+  const r = currentCalc();
+  const cur = $('curSchool').value;
+  const wishes = readWishes();
+  if (r.errors.length) return r.errors[0];
+  if (r.gapExpired && !EUL.includes(cur)) return '수원 갑구역 10년 만기라 관내로 낼 수 없어요. 관외 모의지원을 이용해 주세요.';
+  if (!r.eligible) return '현임교 근무가 2년이 안 돼서 지원할 수 없어요.';
+  if (!cur) return '현임교를 고르세요.';
+  if (!wishes.length) return '희망 학교를 하나 이상 고르세요.';
+  if (new Set(wishes).size !== wishes.length) return '같은 학교를 두 번 고를 수 없어요.';
+  if (wishes.includes(cur)) return '현임교는 희망 학교로 고를 수 없어요.';
+  if (!$('confirmOnce').checked) return '제출 전 확인란에 체크하세요.';
+  return null;
+}
+
+function renderApplySummary() {
+  const r = currentCalc();
+  if (r.errors.length) { $('applySummary').textContent = ''; return; }
+  const mismatch = isExpiredKind() && !r.sameSchoolExpired
+    ? ` · <span class="warn-text">계산기상 현임교 근무가 5년이 안 돼 아직 만기가 아니에요</span>` : '';
+  $('applySummary').innerHTML = `지원 점수: <strong>${fmtYM(r.totalMonths)}</strong> (현임교 ${fmtYM(r.baseMonths)} + 가산 ${fmtYM(r.bonusMonths)}) · ${isExpiredKind() ? '현임교 만기내신' : '일반내신'}${mismatch}`;
+  const err = validate();
+  $('btnSubmit').disabled = !!err;
+  $('submitMsg').textContent = err || '';
+}
+
+async function refreshAuth() {
+  const { data } = await sb.auth.getSession();
+  const session = data.session;
+  $('signedOut').hidden = !!session;
+  $('signedIn').hidden = !session;
+  if (session) { $('whoEmail').textContent = session.user.email || ''; await loadMine(); }
+  else { $('applyForm').hidden = true; $('results').hidden = true; }
+}
+
+async function loadMine() {
+  const { data, error } = await sb.from('gwannae_applications').select('*').eq('cycle', CYCLE).eq('district', DISTRICT).maybeSingle();
+  if (error) { $('submitMsg').textContent = '지원 내역을 불러오지 못했어요. 새로고침해 주세요.'; return; }
+  myApp = data;
+  $('applyForm').hidden = !!myApp;
+  if (!myApp) { renderWishInputs(); $('results').hidden = true; }
+  else await loadRankings();
+}
+
+// 같은 구분 안에서 우대 → 전보년수. 동점이면 내가 앞(최선 순위)
+const byScore = (a, b) => (b.has_priority - a.has_priority) || (b.total_months - a.total_months) || (b.is_me - a.is_me);
+
+async function loadRankings() {
+  $('results').hidden = false;
+  const a = myApp;
+  $('myApp').innerHTML = `<div class="mine">
+      <div><span class="k">지원 점수</span><span class="v">${fmtYM(a.total_months)}</span></div>
+      <div><span class="k">현임교</span><span class="v">${esc(a.current_school)}</span></div>
+      <div><span class="k">희망</span><span class="v">${a.wishes.map((w, i) => `${i + 1}. ${esc(w)}`).join(' &nbsp;')}</span></div>
+      <div><span class="k">내신 구분</span><span class="v">${a.is_expired ? '현임교 만기내신' : '일반내신'}${a.has_priority ? ' · 우대' : ''}</span></div>
+    </div>`;
+  const { data, error } = await sb.rpc('get_school_rankings', { p_cycle: CYCLE, p_district: DISTRICT });
+  if (error) { $('regionCards').innerHTML = '<p class="err">순위를 불러오지 못했어요. 새로고침을 눌러 주세요.</p>'; return; }
+  const bySchool = {};
+  for (const row of data) (bySchool[row.school] ||= []).push(row);
+
+  $('regionCards').innerHTML = a.wishes.map((w, i) => {
+    const all = bySchool[w] || [];
+    const first = all.filter(r => r.wish_order === 1 || r.is_me);
+    const merged = [...first].sort(byScore);              // 통합 명부
+    const exp1 = first.filter(r => r.is_expired).sort(byScore);
+    const gen1 = first.filter(r => !r.is_expired).sort(byScore);
+    const expLater = all.filter(r => r.is_expired && r.wish_order > 1 && !r.is_me).length;
+    const me = merged.find(r => r.is_me);
+    const before = (list) => list.filter(r => !r.is_me && byScore(r, me) < 0).length;
+    const ahead = before(merged);
+    const ties = merged.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
+    const altRank = a.is_expired ? before(exp1) + 1 : exp1.length + before(gen1) + 1;
+    const li = (r) => `<li class="${r.is_me ? 'me' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_expired ? '<em class="g">만기</em>' : ''}</li>`;
+    const ladder = merged.slice(0, 14).map(li).join('');
+    const notes = [];
+    if (altRank !== ahead + 1) notes.push(`만기자를 먼저 배정하는 것으로 보면 ${altRank}위예요.`);
+    if (expLater) notes.push(`2~4희망으로 쓴 만기자 ${expLater}명도 앞 희망에서 밀리면 이 학교에 지원될 수 있어요.`);
+    notes.push(a.is_expired
+      ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망 학교로 넘어가요.' : '마지막 희망이에요. 여기서도 밀리면 다른 학교로 배정돼요.')
+      : '일반내신은 여기서 밀리면 잔류해요.');
+    return `<article class="card">
+      <header><span class="tagw">${i + 1}희망</span><h4>${esc(w)}</h4></header>
+      <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${merged.length}명 (1희망 통합 명부 기준)</span></div>
+      <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
+      ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
+      <ol class="ladder">${ladder}</ol>
+      ${merged.length > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
+    </article>`;
+  }).join('');
+}
+
+$('btnLogin').addEventListener('click', async () => {
+  const email = $('email').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('loginMsg').textContent = '이메일 주소를 확인해 주세요.'; return; }
+  $('btnLogin').disabled = true;
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  $('btnLogin').disabled = false;
+  $('loginMsg').textContent = error
+    ? (error.status === 429 ? '메일을 너무 자주 요청했어요. 1분쯤 뒤에 다시 시도해 주세요.' : '로그인 메일을 보내지 못했어요: ' + error.message)
+    : `${email} 로 로그인 링크를 보냈어요. 메일함(스팸함 포함)을 확인하세요.`;
+});
+$('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); await refreshAuth(); });
+$('btnRefresh').addEventListener('click', loadRankings);
+$('curSchool').addEventListener('change', () => { $('noiseSchool').checked = NOISE.includes($('curSchool').value); render(); renderWishInputs(); });
+$('confirmOnce').addEventListener('change', renderApplySummary);
+for (const id of ['kindNormal', 'kindExpired']) $(id).addEventListener('change', () => { kindTouched = true; renderWishInputs(); });
+$('f').addEventListener('input', () => { if (!$('applyForm').hidden) renderWishInputs(); });
+$('f').addEventListener('change', () => { if (!$('applyForm').hidden) renderWishInputs(); });
+
+$('applyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = validate();
+  if (err) { $('submitMsg').textContent = err; return; }
+  const r = currentCalc();
+  $('btnSubmit').disabled = true;
+  const { error } = await sb.from('gwannae_applications').insert({
+    cycle: CYCLE, district: DISTRICT,
+    current_school: $('curSchool').value,
+    wishes: readWishes(),
+    is_expired: isExpiredKind(),
+    has_priority: $('priority').checked,
+    base_months: r.baseMonths, bonus_months: r.bonusMonths, total_months: r.totalMonths,
+  });
+  if (error) {
+    $('submitMsg').textContent = error.code === '23505' ? '이미 지원했어요. 한 사람당 한 번만 지원할 수 있어요.' : '지원하지 못했어요: ' + error.message;
+    $('btnSubmit').disabled = false;
+    if (error.code === '23505') await loadMine();
+    return;
+  }
+  await loadMine();
+});
+
+sb.auth.onAuthStateChange(() => { setTimeout(refreshAuth, 0); });
+render();
+refreshAuth();
+
+</script>
+</body>
+</html>

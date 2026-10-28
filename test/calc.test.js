@@ -37,3 +37,12 @@ assert(r.gapExpired === true && r.wishCount === '1~4희망', 'gap expired');
 // 7. 5학급 이하 갑 → 30%
 r = calc({ refDate: '2027-03-01', startDate: '2024-03-01', zone: 'gap', smallSchool: true });
 assert(r.items[0].months === 10, 'small 36*0.3=10.8→10');
+
+// 수원 관내: 교육실습 1년 3월, 표창 4단계, 추가 비율가산(5년 상한 안에서)
+r = calc({ refDate: '2027-03-01', startDate: '2023-03-01', zone: 'gap', silseup: 2, silseupPerYear: 3,
+  extraPct: [{ label: '체육교과전담', months: 30, rate: 0.5 }, { label: '소음피해학교', months: 80, rate: 0.5 }],
+  awardTiers: [{ label: '총리↑', count: 1, months: 4 }, { label: '장관', count: 0, months: 3 }, { label: '교육감', count: 1, months: 2 }, { label: '교육장', count: 1, months: 1 }] });
+assert(r.items.find(i => i.label === '교육실습학교 직접 지도').months === 6, 'suwon silseup 2y×3');
+assert(r.items.find(i => i.label === '체육교과전담').months === 15, 'suwon PE 30×50%');
+assert(r.items.find(i => i.label === '소음피해학교').months === 24, 'noise capped at base 48 ×50%');
+assert(r.items.find(i => i.label === '표창').months === 7, 'awards 4+2+1');
