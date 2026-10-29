@@ -37,3 +37,10 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 .err { color: var(--bad); }
 .ladder li em.g { background: var(--bad-soft); color: var(--bad); }
 .warn-text { color: var(--warn); }
+
+.consent { margin-top: 8px; font-size: 0.85rem; line-height: 1.5; color: var(--muted, #5d6b66); }
+.consent .check { align-items: flex-start; gap: 6px; }
+.consent a { color: var(--accent); }
+.delete-me { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn-ghost.danger { color: #b3261e; border-color: #e4b4ae; }
+.fine a { color: var(--accent); }

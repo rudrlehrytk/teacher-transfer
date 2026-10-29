@@ -25,3 +25,7 @@ GitHub Pages(main 브랜치 루트). Supabase Authentication > URL Configuration
 - `src/districts/<key>.js`에 `DCFG`(학교 목록·지역가산율·가산 항목·표창 단계·내신 구분·희망 수·순위 방식)를 쓰고, `build.py`의 `DISTRICTS`와 `PAGES`에 한 줄씩 넣는다.
 - 공통 코드는 `src/district.js`, 화면은 `src/district-part.html`. DB `district` 허용값과 희망 수 제약도 마이그레이션으로 추가한다.
 - 테스트: `node test/run-districts.js`
+
+## 개인정보
+- 로그인 전 수집·이용 동의 체크(필수), 처리방침 `privacy.html`, 로그인 후 "내 정보 모두 삭제"(`delete_my_data()` RPC) — 공통 스크립트 `src/privacy.js`.
+- 보관 기간: 2027.3.31. 일괄 삭제(운영자가 실행).

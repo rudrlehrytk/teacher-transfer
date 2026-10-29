@@ -37,7 +37,7 @@ def page(out, title, h1, desc, part, js, current, pre=(), part_vars=None):
     html_body = base_html.replace('<h1>경기 관외전보 점수 계산기</h1>', f'<h1>{h1}</h1>')
     html_body = html_body.replace(
         '<p>입력한 값은 이 화면에서만 쓰고 어디에도 저장하지 않아요.</p>',
-        '<p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부만 저장돼요.</p>')
+        '<p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 로그인 이메일과 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부가 저장되고, 2027.3.31.에 모두 지워요.</p>')
     navh = nav(current)
     html_body = html_body.replace('<header>', '<header>\n    ' + navh, 1)
     idx = html_body.rstrip().rfind('</div>')
@@ -69,6 +69,7 @@ def page(out, title, h1, desc, part, js, current, pre=(), part_vars=None):
 {calc}
 {ui}
 {(root / js).read_text()}
+{(root / 'src/privacy.js').read_text()}
 </script>
 </body>
 </html>
