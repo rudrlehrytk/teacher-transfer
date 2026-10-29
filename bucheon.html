@@ -203,7 +203,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             </select></div></div>
           <div class="row"><span class="lab">학교 규모</span>
             <div class="ctl"><label class="check"><input type="checkbox" id="smallSchool"> 5학급 이하 학교 또는 분교장 (30%)</label></div></div>
-          <div class="row" id="gapRow"><label for="gapStart">이 지원청 갑구역 근무 시작일<span class="hint">10년이면 갑 만기. 지원청이 바뀌면 다시 셉니다.</span></label>
+          <div class="row" id="gapRow"><label for="gapStart">이 지원청 갑구역 근무 시작일<span class="hint">10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년). 지원청이 바뀌면 다시 셉니다.</span></label>
             <div class="ctl"><input type="date" id="gapStart">
               <label class="check"><input type="checkbox" id="gapExempt"> 58세 이상 등 계속근무 대상</label></div></div>
         </div>
@@ -355,7 +355,7 @@ const DCFG = {
   intro: '부천 안에서 학교를 옮길 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 2027 부천 세부원칙의 가산표를 따랐어요.',
   basis: '2027 경기도부천교육지원청 교육공무원 인사관리세부원칙(유치원, 초등) 제7·8·10·13조와 가산표.',
   zoneNote: '부천 초등 64교는 모두 갑구역이라 구역 가산은 없고, 학급 수에 따른 가산(15학급 이하 30%, 6학급 이하 50%)만 있어요.',
-  gapHint: '특구역 기간 포함 10년이면 갑 만기.',
+  gapHint: '10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년).',
   schools: schoolList('부천북 약대 부일 원미 부천신흥 도당 부천 부천중앙 부천남 부천동 부천서 소사 심곡 성주 부천부안 부원 동곡 상지 범박 도원 복사 창영 계남 부천부곡 상동 중흥 부인 부광 부명 부천부흥 상도 송내 심원 신도 소일 부천중원 부천역곡 상일 상인 상원 석천 옥산 부천일신 솔안 부천송일 상미 부천양지 소안 중동 오정 부천삼정 원종 고강 부천덕산 부천대명 부천수주 부천여월 까치울 고리울 동산 성곡 부천원일 옥길산들 옥길버들', { label: '' }),
   small: [{ label: '15학급 이하 (30%)', rate: 0.3, short: '15학급 이하' }, { label: '6학급 이하 (50%)', rate: 0.5, short: '6학급 이하' }],
   smallHint: '학급 수 자료가 없어 직접 골라요. 6학급 이하는 2016.3.1. 이후 경력',

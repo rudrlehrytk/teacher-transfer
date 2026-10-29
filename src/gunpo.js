@@ -21,7 +21,7 @@ let myApp = null;
   note.className = 'row';
   note.innerHTML = '<span class="lab">인사구역</span><div class="ctl"><span class="hint" id="zoneNote">군포의왕은 의왕푸른초만 을구역(현임교 근무년수 50%)이고 나머지는 갑구역이에요. 아래 모의 지원에서 현임교를 고르면 자동으로 맞춰져요.</span></div>';
   rowOf('zone').after(note);
-  $('gapStart').closest('.row').querySelector('.hint').textContent = '10년이면 갑 만기. 다른 지원청에서 근무한 갑구역 기간은 넣지 않아요.';
+  $('gapStart').closest('.row').querySelector('.hint').textContent = '10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년). 다른 지원청에서 근무한 갑구역 기간은 넣지 않아요.';
   // 관외용·군포의왕에 없는 항목 숨김
   $('wishRegion').value = '';
   rowOf('wishRegion').closest('fieldset').hidden = true;
