@@ -77,13 +77,16 @@ function calc(input) {
   const capM = (v) => Math.min(Math.max(+v || 0, 0), base);
 
   // 지역가산 (16조③ 지역가산표) — 구역 비율과 5학급 이하 30% 중 큰 값 1개
-  const zr = REGION_RATE[input.zone] ?? 0;
-  const sr = input.smallSchool ? SMALL_RATE : 0;
+  // 지원청별로 학교마다 비율을 줄 수 있다(input.regionRate/regionLabel, input.smallRate/smallLabel)
+  const zr = input.regionRate !== undefined ? input.regionRate : (REGION_RATE[input.zone] ?? 0);
+  const sr = input.smallSchool ? (input.smallRate ?? SMALL_RATE) : 0;
   const rate = Math.max(zr, sr);
   if (rate > 0) {
     const name = { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone];
-    const label = sr > zr ? '지역가산(5학급 이하·분교장)' : `지역가산(${name})`;
-    add(label, base * rate, `현임교 ${base}개월 × ${Math.round(rate * 100)}%`);
+    const label = sr > zr ? `지역가산(${input.smallLabel || '5학급 이하·분교장'})` : `지역가산(${input.regionLabel || name})`;
+    const pctTxt = Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
+      ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
+    add(label, base * rate, `현임교 ${base}개월 × ${pctTxt}`);
   }
 
   // 업무가산 — 비율형
@@ -112,11 +115,15 @@ function calc(input) {
     ['grade6', '6학년 담임'],
     ['big43', '보건·사서·전문상담 43학급 이상'],
   ];
+  const YR = input.yearlyRates || {}; // 지원청별 1년·6월 단위 월수 (성남 부장 6월/4월 등)
   for (const [k, label] of yearly) {
     const full = Math.max(0, Math.floor(+input[k + 'Full'] || 0));
     const half = Math.max(0, Math.floor(+input[k + 'Half'] || 0));
-    if (full || half) add(label, full * 3 + half * 2, `1년 ${full}회 × 3월 + 6월~1년 미만 ${half}회 × 2월`);
+    const [fm, hm] = YR[k] || [3, 2];
+    if (full || half) add(label, full * fm + half * hm, `1년 ${full}회 × ${fm}월 + 6월~1년 미만 ${half}회 × ${hm}월`);
   }
+  // 지원청별 고정 월수 가산 [{label, months, basis}]
+  for (const e of input.extraFixed || []) if (e.months > 0) add(e.label, e.months, e.basis);
   if (+input.yearsTotal > 5) out.warnings.push('1년 단위 경력 합계가 현임교 근무년수보다 깁니다. 현임교 경력만 인정됩니다.');
 
   const silseup = Math.max(0, Math.floor(+input.silseup || 0));
@@ -127,7 +134,11 @@ function calc(input) {
 
   // 혁신학교
   const hm = capM(input.hyeoksinMonths);
-  if (hm && input.hyeoksin === 'before2017') {
+  const HR = input.hyeoksinRule; // 지원청별 혁신학교 규칙 {label, rate, min}
+  if (HR) {
+    if (hm && hm >= HR.min) add(`혁신학교(${HR.label})`, hm * HR.rate, `${hm}개월 × ${Math.round(HR.rate * 100)}%`);
+    else if (hm) out.warnings.push(`혁신학교(${HR.label}) 가산은 지정 후 ${HR.min / 12}년 이상 근무해야 합니다.`);
+  } else if (hm && input.hyeoksin === 'before2017') {
     if (hm >= 36) add('혁신학교(2017 이전 지정)', hm, `${hm}개월 × 100%`);
     else out.warnings.push('혁신학교(2017 이전 지정) 가산은 지정 후 3년 이상 근무해야 합니다.');
   } else if (hm && input.hyeoksin === '2017to2020') {
@@ -168,6 +179,12 @@ function calc(input) {
   } else if (pm || mn || sp) add('표창', pm * 3 + mn * 2 + sp, `${AL[0]} ${pm}건×3월, ${AL[1]} ${mn}건×2월, ${AL[2]} ${sp}건×1월`);
 
   out.bonusMonths = out.items.reduce((s, i) => s + i.months, 0);
+  if (input.bonusCapPct && out.bonusMonths > Math.floor(base * input.bonusCapPct)) { // 용인: 가산 합계 ≤ 근무년수 100%
+    const cap = Math.floor(base * input.bonusCapPct);
+    out.warnings.push(`가산년수 합계가 현임교 근무년수의 ${Math.round(input.bonusCapPct * 100)}%를 넘어 ${cap}개월로 줄였습니다.`);
+    out.items.push({ label: '가산 상한 적용', months: cap - out.bonusMonths, basis: `현임교 ${base}개월 × ${Math.round(input.bonusCapPct * 100)}%까지만` });
+    out.bonusMonths = cap;
+  }
   out.totalMonths = base + out.bonusMonths;
 
   // 갑구역 만기 (10조①2) — 현 지원청 갑구역 근무 10년

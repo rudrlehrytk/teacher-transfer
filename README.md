@@ -8,7 +8,7 @@
 - 시·군별 TO는 공개되지 않아 순위만 표시
 
 ## 구조
-- `index.html`(관외), `anyang.html`(안양과천 관내), `suwon.html`(수원 관내), `gunpo.html`(군포의왕 관내) — 배포되는 페이지 (`python3 build.py`로 생성, 직접 고치지 않음)
+- `index.html`(관외), `anyang.html`(안양과천 관내), `suwon.html`(수원 관내), `gunpo.html`(군포의왕 관내), `seongnam`·`goyang`·`yongin`·`hwaseong`·`bucheon`.html(설정형 관내 페이지) — 배포되는 페이지 (`python3 build.py`로 생성, 직접 고치지 않음)
 - `src/gwannae.js`(안양과천)·`src/suwon.js`·`src/gunpo.js` — 지원청별 관내 모의 지원(계산기 조정 + 학교별 순위)
 - `src/calc.js` — 전보년수 계산 로직
 - `src/calculator-base.html` — 계산기 화면(스타일·입력 서식)
@@ -20,3 +20,8 @@
 GitHub Pages(main 브랜치 루트). Supabase Authentication > URL Configuration에 Pages 주소를 Site URL·Redirect URL로 등록해야 이메일 로그인 링크가 이 페이지로 돌아온다.
 
 공식 계산이 아니며, 실제 전보 결과와 다를 수 있다.
+
+## 관내 페이지 추가하는 법 (설정형)
+- `src/districts/<key>.js`에 `DCFG`(학교 목록·지역가산율·가산 항목·표창 단계·내신 구분·희망 수·순위 방식)를 쓰고, `build.py`의 `DISTRICTS`와 `PAGES`에 한 줄씩 넣는다.
+- 공통 코드는 `src/district.js`, 화면은 `src/district-part.html`. DB `district` 허용값과 희망 수 제약도 마이그레이션으로 추가한다.
+- 테스트: `node test/run-districts.js`

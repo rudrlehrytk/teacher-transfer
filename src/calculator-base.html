@@ -449,7 +449,7 @@ function render() {
   const sheet = $('sheet');
   if (r.errors.length) { sheet.innerHTML = `<div class="err">${r.errors.map(esc).join('<br>')}</div>`; return; }
   const yrs = (r.totalMonths / 12).toFixed(2);
-  const rows = r.items.map(i => `<tr><td>${esc(i.label)}<span class="b">${esc(i.basis)}</span></td><td class="n">+${i.months}월</td></tr>`).join('');
+  const rows = r.items.map(i => `<tr><td>${esc(i.label)}<span class="b">${esc(i.basis)}</span></td><td class="n">${i.months < 0 ? '−' + (-i.months) : '+' + i.months}월</td></tr>`).join('');
   const md = r.serviceMD;
   const pills = [];
   pills.push(r.eligible ? '<span class="pill ok">내신 가능 (동일교 2년 이상)</span>' : '<span class="pill bad">내신 불가 (동일교 2년 미만)</span>');
