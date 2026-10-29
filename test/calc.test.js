@@ -47,23 +47,22 @@ assert(r.items.find(i => i.label === '체육교과전담').months === 15, 'suwon
 assert(r.items.find(i => i.label === '소음피해학교').months === 24, 'noise capped at base 48 ×50%');
 assert(r.items.find(i => i.label === '표창').months === 7, 'awards 4+2+1');
 
-// 특구역→갑구역 전환: 2026.2.28.까지 현임교 5년 이상 근무자는 2026.3.1. 이전 근무·가산 미인정 (수원 안내 예시)
-// 가-① 현임교 8년(2018.3.1.~), 2027.3.1. 일반전보: 현임교 1년 + 부장 1년 = 1년 3월
-r = calc({ refDate: '2027-03-01', startDate: '2018-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1 });
-assert(r.tukReset && r.baseMonths === 12 && fmtYM(r.totalMonths) === '1년 3월', 'tuk 가-① 1년 3월 ' + fmtYM(r.totalMonths));
+// 특구역→갑구역 전환: 2026.2.28.까지 특구역 5년 이상 근무(특만기 해당)자는 기존 현임교 근무년수·가산 미인정 (수원 안내 자료 "청간전보의 실제")
+// 가-① 특구역 8년(2018.3.1.~), 2027.3.1. 일반전보: 현임교 1년 + 2026학년도 부장 1년 = 1.03
+r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1 });
+assert(r.tukReset && r.baseMonths === 12 && fmtYM(r.totalMonths) === '1년 3월', 'tuk 가-① 1.03 ' + fmtYM(r.totalMonths));
 assert(r.eligible, 'tuk 가-① 실제 근무로 내신 가능');
-// 가-② 2028.3.1.: 현임교 2년 + 부장 1년 + 6학년 1년 = 2년 6월
-r = calc({ refDate: '2028-03-01', startDate: '2018-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1, grade6Full: 1 });
-assert(fmtYM(r.totalMonths) === '2년 6월' && r.gapExpired, 'tuk 가-② 2년 6월, 갑 만기 ' + fmtYM(r.totalMonths));
-// 나: 현임교 3년(5년 미만)이면 그대로 인정: 4년 + 부장 2년 + 통합학급 1년(30%) = 4년 9월
+// 가-② 2028.3.1. 일반(갑만기): 현임교 2년 + 부장 1년 + 6학년 1년 = 2.06, 특구역 포함 10년이라 갑 만기
+r = calc({ refDate: '2028-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1, grade6Full: 1 });
+assert(fmtYM(r.totalMonths) === '2년 6월' && r.gapExpired, 'tuk 가-② 2.06, 갑 만기 ' + fmtYM(r.totalMonths));
+// 나: 특구역 3년(2023.3.1.~) → 그대로 인정: 현임교 4년 + 부장 2년 + 통합학급 1년 = 4.09
 r = calc({ refDate: '2027-03-01', startDate: '2023-03-01', zone: 'gap', gapStart: '2023-03-01', wasTuk: true, bujangFull: 2, tonghap: 12 });
-assert(!r.tukReset && fmtYM(r.totalMonths) === '4년 9월', 'tuk 나 4년 9월 ' + fmtYM(r.totalMonths));
-// 구역(특구역) 근무가 길어도 현임교가 5년 미만이면 인정
-r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2015-03-01', wasTuk: true });
-assert(!r.tukReset && r.baseMonths === 60, 'tuk 구역 길어도 현임교 4년이면 인정');
-// 휴직으로 2026.2.28.까지 실근무 5년이 안 되면 인정
-r = calc({ refDate: '2027-03-01', startDate: '2021-03-01', zone: 'gap', wasTuk: true, exclusions: [{ start: '2023-03-01', end: '2023-08-31' }] });
-assert(!r.tukReset, 'tuk 휴직 빼면 5년 미만');
+assert(!r.tukReset && fmtYM(r.totalMonths) === '4년 9월', 'tuk 나 4.09 ' + fmtYM(r.totalMonths));
+// 경계: 특구역 시작 2021.3.1.이면 2026.2.28.까지 5년 → 특만기 / 2021.3.2.이면 5년 미만
+r = calc({ refDate: '2027-03-01', startDate: '2021-03-01', zone: 'gap', gapStart: '2021-03-01', wasTuk: true });
+assert(r.tukReset, 'tuk 경계 2021.3.1. 특만기');
+r = calc({ refDate: '2027-03-01', startDate: '2021-03-02', zone: 'gap', gapStart: '2021-03-02', wasTuk: true });
+assert(!r.tukReset, 'tuk 경계 2021.3.2. 인정');
 // 체크 안 하면 적용 안 됨
-r = calc({ refDate: '2027-03-01', startDate: '2018-03-01', zone: 'gap', bujangFull: 1 });
+r = calc({ refDate: '2027-03-01', startDate: '2018-03-01', zone: 'gap', gapStart: '2018-03-01', bujangFull: 1 });
 assert(!r.tukReset && r.baseMonths === 60, 'tuk off');

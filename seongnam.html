@@ -206,7 +206,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
           <div class="row" id="gapRow"><label for="gapStart">이 지원청 갑구역 근무 시작일<span class="hint">10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년). 지원청이 바뀌면 다시 셉니다.</span></label>
             <div class="ctl"><input type="date" id="gapStart">
               <label class="check"><input type="checkbox" id="gapExempt"> 58세 이상 등 계속근무 대상</label>
-              <label class="check"><input type="checkbox" id="wasTuk"> 2026.2.28.까지 특구역이었던 지역 (그때까지 현임교 5년 이상이면 그 전 근무·가산 미인정)</label></div></div>
+              <label class="check"><input type="checkbox" id="wasTuk"> 2026.2.28.까지 특구역이었던 지역 (그때까지 특구역 5년 이상 근무한 특만기 해당자는 그 전 현임교 근무년수·가산 미인정)</label></div></div>
         </div>
       </fieldset>
 
@@ -444,17 +444,12 @@ function roundMonths(md) {
 
 // 특구역이 갑구역으로 바뀐 날
 const TUK_DATE = { y: 2026, m: 3, d: 1 };
-// 2026.2.28.까지 현임교에서 5년 이상 근무했는지 (휴직·파견 제외)
+// 2026.2.28.까지 특구역(지금의 갑구역)에서 5년 이상 근무했는지 = 특만기 해당 (수원 안내 자료)
+// 판단은 '이 지원청 갑구역 근무 시작일'(특구역 근무 시작일)로 한다
 function tukReset(input) {
   if (!input.wasTuk) return false;
-  const s = parseDate(input.startDate);
-  if (!s || cmp(s, TUK_DATE) >= 0) return false;
-  const ex = (input.exclusions || []).map(e => {
-    const a = parseDate(e.start), b = parseDate(e.end);
-    if (!a || !b || cmp(a, TUK_DATE) >= 0) return null;
-    return { start: e.start, end: cmp(b, TUK_DATE) >= 0 ? '2026-02-28' : e.end };
-  }).filter(Boolean);
-  return serviceMD(s, TUK_DATE, ex).months >= 60;
+  const gs = parseDate(input.gapStart);
+  return !!gs && cmp(gs, TUK_DATE) < 0 && diffMD(gs, TUK_DATE).months >= 60;
 }
 
 const REGION_RATE = { gap: 0, eul: 0.5, byeongDaRa: 0.7, byeongGaNa: 1.0 }; // 지역가산표
@@ -471,7 +466,7 @@ function calc(input) {
   out.serviceMD = md;
   out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가) — 실제 근무 기준
   out.sameSchoolExpired = md.months >= 60;
-  // 특구역→갑구역 전환(2026.3.1.): 2026.2.28.까지 현임교 5년 이상 근무자는
+  // 특구역→갑구역 전환(2026.3.1.): 2026.2.28.까지 특구역 5년 이상(특만기 해당)이면
   // 2026.2.28.까지의 현임교 근무년수와 가산은 인정하지 않는다 (도 기준 2024 부칙 제5조)
   let md2 = md;
   if (tukReset(input) && cmp(start, TUK_DATE) < 0) {
@@ -484,8 +479,9 @@ function calc(input) {
     out.tukReset = true;
     out.serviceMD = md2;
     out.actualMD = md;
-    out.warnings.push('2026.2.28.까지 현임교에서 5년 이상 근무해서 2026.3.1. 이전 현임교 근무년수와 가산은 인정되지 않아요. 업무·표창 가산도 2026.3.1. 이후 것만 넣으세요.');
+    out.warnings.push('2026.2.28.까지 특구역에서 5년 이상 근무(특만기 해당)해서 2026.3.1. 이전 현임교 근무년수와 가산은 인정되지 않아요. 업무·표창 가산도 2026.3.1. 이후 것만 넣으세요.');
   }
+  if (input.wasTuk && !parseDate(input.gapStart)) out.warnings.push('특구역(갑구역) 근무 시작일을 넣어야 2026.2.28.까지 특구역 5년 이상(특만기)인지 판단할 수 있어요.');
   const rawMonths = roundMonths(md2);
   const base = Math.min(rawMonths, 60); // 5년 상한
   out.baseMonths = base;
@@ -683,7 +679,7 @@ function render() {
   const md = r.serviceMD;
   const pills = [];
   pills.push(r.eligible ? '<span class="pill ok">내신 가능 (동일교 2년 이상)</span>' : '<span class="pill bad">내신 불가 (동일교 2년 미만)</span>');
-  if (r.tukReset) pills.push('<span class="pill warn">현임교 5년 이상(2026.2.28.) · 2026.3.1. 이후만 인정</span>');
+  if (r.tukReset) pills.push('<span class="pill warn">특만기 해당 · 2026.3.1. 이후만 인정</span>');
   if (r.sameSchoolExpired) pills.push('<span class="pill warn">동일교 5년 만기</span>');
   if (r.gapExpired) pills.push('<span class="pill warn">갑구역 만기 · 관내 내신 불가</span>');
   else if (r.gapMonths !== undefined) pills.push(`<span class="pill">갑구역 ${Math.floor(r.gapMonths/12)}년 ${r.gapMonths%12}월 근무</span>`);
