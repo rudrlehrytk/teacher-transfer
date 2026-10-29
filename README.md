@@ -8,8 +8,8 @@
 - 시·군별 TO는 공개되지 않아 순위만 표시
 
 ## 구조
-- `index.html`(관외), `anyang.html`(안양과천 관내), `suwon.html`(수원 관내) — 배포되는 페이지 (`python3 build.py`로 생성, 직접 고치지 않음)
-- `src/gwannae.js`·`src/suwon.js` — 지원청별 관내 모의 지원(계산기 조정 + 학교별 순위)
+- `index.html`(관외), `anyang.html`(안양과천 관내), `suwon.html`(수원 관내), `gunpo.html`(군포의왕 관내) — 배포되는 페이지 (`python3 build.py`로 생성, 직접 고치지 않음)
+- `src/gwannae.js`(안양과천)·`src/suwon.js`·`src/gunpo.js` — 지원청별 관내 모의 지원(계산기 조정 + 학교별 순위)
 - `src/calc.js` — 전보년수 계산 로직
 - `src/calculator-base.html` — 계산기 화면(스타일·입력 서식)
 - `src/app-part.html`, `src/app.js`, `src/extra.css` — 로그인·모의 지원·순위

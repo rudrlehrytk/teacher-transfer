@@ -1,4 +1,4 @@
-"""페이지를 만든다: index.html(관외), anyang.html(안양과천 관내), suwon.html(수원 관내)."""
+"""페이지를 만든다: index.html(관외), anyang.html(안양과천 관내), suwon.html(수원 관내), gunpo.html(군포의왕 관내)."""
 import re, pathlib
 root = pathlib.Path(__file__).parent
 src = (root / 'src/calculator-base.html').read_text()
@@ -16,6 +16,7 @@ NAV = '''<nav class="pages" aria-label="모의지원 종류">
   <a href="./"{a}>관외전보 (시·군간)</a>
   <a href="./anyang.html"{b}>안양과천 관내전보</a>
   <a href="./suwon.html"{c}>수원 관내전보</a>
+  <a href="./gunpo.html"{d}>군포의왕 관내전보</a>
 </nav>'''
 NAV_CSS = '''
 .pages { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -30,7 +31,8 @@ def page(out, title, h1, desc, part, js, current):
         '<p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부만 저장돼요.</p>')
     nav = NAV.format(a=' aria-current="page"' if current == 'gwanoe' else '',
                      b=' aria-current="page"' if current == 'anyang' else '',
-                     c=' aria-current="page"' if current == 'suwon' else '')
+                     c=' aria-current="page"' if current == 'suwon' else '',
+                     d=' aria-current="page"' if current == 'gunpo' else '')
     html_body = html_body.replace('<header>', '<header>\n    ' + nav, 1)
     idx = html_body.rstrip().rfind('</div>')
     html_body = html_body[:idx] + (root / part).read_text() + html_body[idx:]
@@ -73,3 +75,6 @@ page('anyang.html', '안양과천 관내전보 모의지원', '안양과천 관�
 page('suwon.html', '수원 관내전보 모의지원', '수원 관내전보 점수 계산·모의지원',
      '수원 관내 초등 전보 전보년수를 계산하고 모의 지원으로 희망 학교 순위를 확인해요.',
      'src/suwon-part.html', 'src/suwon.js', 'suwon')
+page('gunpo.html', '군포의왕 관내전보 모의지원', '군포의왕 관내전보 점수 계산·모의지원',
+     '군포의왕 관내 초등 전보 전보년수를 계산하고 모의 지원으로 희망 학교 순위를 확인해요.',
+     'src/gunpo-part.html', 'src/gunpo.js', 'gunpo')
