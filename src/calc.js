@@ -53,10 +53,17 @@ function roundMonths(md) {
 
 // 특구역이 갑구역으로 바뀐 날
 const TUK_DATE = { y: 2026, m: 3, d: 1 };
+// 2026.2.28.까지 현임교에서 5년 이상 근무했는지 (휴직·파견 제외)
 function tukReset(input) {
   if (!input.wasTuk) return false;
-  const gs = parseDate(input.gapStart);
-  return !!gs && diffMD(gs, TUK_DATE).months >= 60;
+  const s = parseDate(input.startDate);
+  if (!s || cmp(s, TUK_DATE) >= 0) return false;
+  const ex = (input.exclusions || []).map(e => {
+    const a = parseDate(e.start), b = parseDate(e.end);
+    if (!a || !b || cmp(a, TUK_DATE) >= 0) return null;
+    return { start: e.start, end: cmp(b, TUK_DATE) >= 0 ? '2026-02-28' : e.end };
+  }).filter(Boolean);
+  return serviceMD(s, TUK_DATE, ex).months >= 60;
 }
 
 const REGION_RATE = { gap: 0, eul: 0.5, byeongDaRa: 0.7, byeongGaNa: 1.0 }; // 지역가산표
@@ -73,7 +80,7 @@ function calc(input) {
   out.serviceMD = md;
   out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가) — 실제 근무 기준
   out.sameSchoolExpired = md.months >= 60;
-  // 특구역→갑구역 전환(2026.3.1.): 2026.2.28.까지 특구역 5년 이상(특만기 해당)이면
+  // 특구역→갑구역 전환(2026.3.1.): 2026.2.28.까지 현임교 5년 이상 근무자는
   // 2026.2.28.까지의 현임교 근무년수와 가산은 인정하지 않는다 (도 기준 2024 부칙 제5조)
   let md2 = md;
   if (tukReset(input) && cmp(start, TUK_DATE) < 0) {
@@ -86,7 +93,7 @@ function calc(input) {
     out.tukReset = true;
     out.serviceMD = md2;
     out.actualMD = md;
-    out.warnings.push('2026.2.28.까지 특구역 5년 이상(특만기 해당)이라 2026.3.1. 이전 현임교 근무년수와 가산은 인정되지 않아요. 업무·표창 가산도 2026.3.1. 이후 것만 넣으세요.');
+    out.warnings.push('2026.2.28.까지 현임교에서 5년 이상 근무해서 2026.3.1. 이전 현임교 근무년수와 가산은 인정되지 않아요. 업무·표창 가산도 2026.3.1. 이후 것만 넣으세요.');
   }
   const rawMonths = roundMonths(md2);
   const base = Math.min(rawMonths, 60); // 5년 상한
