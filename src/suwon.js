@@ -24,6 +24,7 @@ let myApp = null;
   note.className = 'row';
   note.innerHTML = '<span class="lab">인사구역</span><div class="ctl"><span class="hint">수원은 갑구역 98교, 을구역 2교(매교·규장)인데 지역가산은 없어요. 5학급 이하 30%는 2027.3.1. 이후 경력부터라 이번 전보에는 해당이 없어요. 매교·규장 근무자는 갑구역 근무 시작일을 비워 두세요.</span></div>';
   rowOf('zone').after(note);
+  window.TUK_DEFAULT = true; $('wasTuk').checked = true; // 수원: 2026.3.1. 특구역→갑구역
   $('gapExempt').closest('label').lastChild.textContent = ' 계속근무·유예 대상 (58세 이상, 중증장애, 세 자녀 유예)';
   // 관외용·수원에 없는 항목 숨김
   $('wishRegion').value = '';
@@ -57,7 +58,8 @@ let myApp = null;
 function noiseMonths(g) {
   const s = parseDate(g.startDate), ref = parseDate(g.refDate);
   if (!s || !ref) return 0;
-  const from = cmp(s, { y: 2020, m: 3, d: 1 }) < 0 ? { y: 2020, m: 3, d: 1 } : s;
+  let from = cmp(s, { y: 2020, m: 3, d: 1 }) < 0 ? { y: 2020, m: 3, d: 1 } : s;
+  if (tukReset(g) && cmp(from, TUK_DATE) < 0) from = TUK_DATE; // 특만기 해당자는 2026.3.1. 이후만
   if (cmp(from, ref) >= 0) return 0;
   return roundMonths(serviceMD(from, ref, g.exclusions));
 }

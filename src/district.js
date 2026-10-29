@@ -22,6 +22,7 @@ let myApp = null;
   $('zone').value = 'gap';
   rowOf('zone').hidden = true;
   rowOf('zone').after(mk(`<span class="lab">인사구역·지역가산</span><div class="ctl"><span class="hint" id="zoneNote">${C.zoneNote} 아래 모의 지원에서 현임교를 고르면 지역가산이 자동으로 맞춰져요.</span></div>`));
+  if (C.tuk) { window.TUK_DEFAULT = true; $('wasTuk').checked = true; }
   if (C.gapHint) $('gapStart').closest('.row').querySelector('.hint').textContent = C.gapHint;
 
   // 학교 규모 가산 (지원청마다 기준이 다름) — 없으면 숨김

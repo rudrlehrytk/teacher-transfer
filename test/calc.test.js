@@ -46,3 +46,18 @@ assert(r.items.find(i => i.label === '교육실습학교 직접 지도').months 
 assert(r.items.find(i => i.label === '체육교과전담').months === 15, 'suwon PE 30×50%');
 assert(r.items.find(i => i.label === '소음피해학교').months === 24, 'noise capped at base 48 ×50%');
 assert(r.items.find(i => i.label === '표창').months === 7, 'awards 4+2+1');
+
+// 특구역→갑구역 전환: 2026.2.28.까지 특구역 5년 이상이면 2026.3.1. 이전 근무·가산 미인정 (수원 안내 예시)
+// 가-① 특구역 8년, 2027.3.1. 일반전보: 현임교 1년 + 부장 1년 = 1년 3월
+r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1 });
+assert(r.tukReset && r.baseMonths === 12 && fmtYM(r.totalMonths) === '1년 3월', 'tuk 가-① 1년 3월 ' + fmtYM(r.totalMonths));
+assert(r.eligible, 'tuk 가-① 실제 근무로 내신 가능');
+// 가-② 2028.3.1.: 현임교 2년 + 부장 1년 + 6학년 1년 = 2년 6월
+r = calc({ refDate: '2028-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2018-03-01', wasTuk: true, bujangFull: 1, grade6Full: 1 });
+assert(fmtYM(r.totalMonths) === '2년 6월' && r.gapExpired, 'tuk 가-② 2년 6월, 갑 만기 ' + fmtYM(r.totalMonths));
+// 나: 특구역 3년(5년 미만)이면 그대로 인정: 4년 + 부장 2년 + 통합학급 1년(30%) = 4년 9월
+r = calc({ refDate: '2027-03-01', startDate: '2023-03-01', zone: 'gap', gapStart: '2023-03-01', wasTuk: true, bujangFull: 2, tonghap: 12 });
+assert(!r.tukReset && fmtYM(r.totalMonths) === '4년 9월', 'tuk 나 4년 9월 ' + fmtYM(r.totalMonths));
+// 체크 안 하면 적용 안 됨
+r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2018-03-01', bujangFull: 1 });
+assert(!r.tukReset && r.baseMonths === 60, 'tuk off');
