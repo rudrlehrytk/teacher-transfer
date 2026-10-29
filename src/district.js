@@ -101,11 +101,12 @@ calc = function (input) {
 };
 function currentCalc() { return calc(gather()); }
 
+// 가나다순 한 목록. 구역·지역 구분은 학교 이름 뒤에 붙여 보여 준다
+const SORTED = [...SCHOOLS].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 function schoolOptions(sel, placeholder) {
-  const groups = C.groupBy ? [...new Set(SCHOOLS.map(s => s[C.groupBy]))] : [null];
-  sel.innerHTML = `<option value="">${placeholder}</option>` + groups.map(gname => {
-    const opts = SCHOOLS.filter(s => !gname || s[C.groupBy] === gname).map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
-    return gname ? `<optgroup label="${esc(gname)}">${opts}</optgroup>` : opts;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + SORTED.map(s => {
+    const tag = C.groupBy ? s[C.groupBy] : s.label;
+    return `<option value="${esc(s.name)}">${esc(s.name)}${tag ? ` (${esc(tag)})` : ''}</option>`;
   }).join('');
 }
 schoolOptions($('curSchool'), '선택하세요');

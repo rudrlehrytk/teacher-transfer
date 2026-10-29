@@ -66,7 +66,7 @@ gather = function () {
 function currentCalc() { return calc(gather()); }
 
 function schoolOptions(sel, placeholder) {
-  sel.innerHTML = `<option value="">${placeholder}</option>` + SCHOOLS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  sel.innerHTML = `<option value="">${placeholder}</option>` + [...SCHOOLS].sort((a, b) => a.localeCompare(b, 'ko')).map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join(''); // 가나다순
 }
 schoolOptions($('curSchool'), '선택하세요');
 
