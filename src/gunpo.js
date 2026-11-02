@@ -3,9 +3,9 @@ const SUPABASE_URL = 'https://ibpycwlzrxqtxlmbfemh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_0RvlXiRgdJMZnDi1Gm1zBA_pWw9z5gV';
 const CYCLE = '2027-03';
 const DISTRICT = 'gunpo';
-// 2027 군포의왕 초등 42교: 군포 갑 27 / 의왕 갑 14 + 을 1(의왕푸른). 출처: 2027 군포의왕 세부원칙 [별표1]
-const SCHOOLS = ['군포', '금정', '산본', '군포양정', '군포화산', '흥진', '능내', '둔전', '광정', '수리', '궁내', '곡란', '신흥', '태을', '오금', '용호', '군포옥천', '당동', '당정', '한얼', '군포신기', '관모', '도장', '군포대야', '둔대', '부곡중앙', '송안', '고천', '의왕부곡', '백운', '내손', '오전', '왕곡', '의왕', '의왕덕성', '갈뫼', '모락', '포일', '내동', '덕장', '백운호수', '의왕푸른'].map(s => s + '초');
-const EUL = ['의왕푸른초'];
+// 2027 군포의왕 초등 43교: 군포 갑 27 / 의왕 갑 14 + 을 2(의왕푸른, 월암 신설). 출처: 2027 군포의왕 세부원칙 [별표1]
+const SCHOOLS = ['군포', '금정', '산본', '군포양정', '군포화산', '흥진', '능내', '둔전', '광정', '수리', '궁내', '곡란', '신흥', '태을', '오금', '용호', '군포옥천', '당동', '당정', '한얼', '군포신기', '관모', '도장', '군포대야', '둔대', '부곡중앙', '송안', '고천', '의왕부곡', '백운', '내손', '오전', '왕곡', '의왕', '의왕덕성', '갈뫼', '모락', '포일', '내동', '덕장', '백운호수', '의왕푸른', '월암'].map(s => s + '초');
+const EUL = ['의왕푸른초', '월암초']; // 월암: 2027 신설교(을)
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let myApp = null;
@@ -14,12 +14,12 @@ let myApp = null;
 (function adaptCalculator() {
   const rowOf = (id) => $(id) && $(id).closest('.row');
   const hideRow = (id) => { rowOf(id).hidden = true; if ($(id).type === 'checkbox') $(id).checked = false; else $(id).value = 0; };
-  // 구역은 현임교로 정한다: 의왕푸른만 을구역(50%), 나머지 갑
+  // 구역은 현임교로 정한다: 의왕푸른·월암만 을구역(50%), 나머지 갑
   $('zone').value = 'gap';
   rowOf('zone').hidden = true;
   const note = document.createElement('div');
   note.className = 'row';
-  note.innerHTML = '<span class="lab">인사구역</span><div class="ctl"><span class="hint" id="zoneNote">군포의왕은 의왕푸른초만 을구역(현임교 근무년수 50%)이고 나머지는 갑구역이에요. 아래 모의 지원에서 현임교를 고르면 자동으로 맞춰져요.</span></div>';
+  note.innerHTML = '<span class="lab">인사구역</span><div class="ctl"><span class="hint" id="zoneNote">군포의왕은 의왕푸른초·월암초(2027 신설)만 을구역(현임교 근무년수 50%)이고 나머지는 갑구역이에요. 아래 모의 지원에서 현임교를 고르면 자동으로 맞춰져요.</span></div>';
   rowOf('zone').after(note);
   $('gapStart').closest('.row').querySelector('.hint').textContent = '10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년). 다른 지원청에서 근무한 갑구역 기간은 넣지 않아요.';
   // 관외용·군포의왕에 없는 항목 숨김

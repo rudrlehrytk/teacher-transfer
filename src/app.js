@@ -21,7 +21,7 @@ function renderWishInputs() {
   const r = currentCalc();
   // 계산기에서 갑 만기로 나오면 처음 한 번은 만기내신을 골라 둔다
   if (!kindTouched && r.gapExpired) $('kindGap').checked = true;
-  const n = isGapKind() ? 4 : 1;
+  const n = isGapKind() ? 6 : 3; // 2027: 일반 3희망까지, 갑 만기 6희망까지 (경기형 인사시스템)
   const box = $('wishBox');
   const prev = [...box.querySelectorAll('select')].map(s => s.value);
   if (!prev.length && $('wishRegion').value) prev[0] = $('wishRegion').value;
@@ -35,7 +35,7 @@ function renderWishInputs() {
     s.addEventListener('change', renderApplySummary);
     box.appendChild(s);
   }
-  $('wishHint').textContent = isGapKind() ? '갑구역 만기내신은 1~4희망까지 쓸 수 있어요. 4희망까지 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.' : '일반내신은 1희망만 쓸 수 있고, 밀리면 잔류해요.';
+  $('wishHint').textContent = isGapKind() ? '갑구역 만기내신은 6희망까지 쓸 수 있어요. 6희망까지 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.' : '일반내신은 3희망까지 쓸 수 있고, 3희망까지 밀리면 미발령(잔류)이에요.';
   renderApplySummary();
 }
 
@@ -126,10 +126,10 @@ async function loadRankings() {
       <header><span class="tagw">${label}</span><h4>${esc(w)}</h4></header>
       <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${first.length}명</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}${i > 0 ? ' (1희망 지원자 기준)' : ''}</p>
-      ${later ? `<p class="line muted">이 시·군을 2~4희망으로 쓴 갑 만기자 ${later}명은 1희망 배정이 끝난 뒤 남은 자리를 두고 경합해요.</p>` : ''}
+      ${later ? `<p class="line muted">이 시·군을 2희망 이하로 쓴 지원자 ${later}명도 있어요. 앞 희망에서 밀리면 1희망 배정이 끝난 뒤 남은 자리를 두고 경합해요.</p>` : ''}
       <p class="line muted">${a.is_gap_expired
         ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.')
-        : '일반내신은 여기서 밀리면 잔류해요.'}</p>
+        : (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 미발령(잔류)이에요.')}</p>
       <ol class="ladder">${top}</ol>
       ${first.length > 12 ? `<p class="line muted">위 12명까지 표시</p>` : ''}
     </article>`;

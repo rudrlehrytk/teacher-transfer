@@ -174,7 +174,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <a href="./hwaseong.html">화성오산</a>
   <a href="./bucheon.html">부천</a>
 </nav>
-    <span class="tag">2026학년도 도 세부기준 · 66차 개정</span>
+    <span class="tag">2027학년도 도 세부기준(안) · 68차 개정</span>
     <h1>용인 관내전보 점수 계산·모의지원</h1>
     <p>다른 시·군으로 전보를 낼 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 관내전보에는 지원청별 가산이 따로 있어 결과가 다를 수 있어요.</p>
   </header>
@@ -243,7 +243,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             <div class="ctl"><input type="number" min="0" max="60" id="sunhoe" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="tonghap">통합학급 교사<span class="hint">30%</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="tonghap" value="0"><span class="unit">개월</span></div></div>
-          <div class="row"><label for="weeMonths">특수교육지원센터·Wee센터<span class="hint">현임기관 근무 100%</span></label>
+          <div class="row"><label for="weeMonths">특수교육순회교사·Wee센터<span class="hint">본청·교육지원청·직속기관 소속, 현임기관 근무 100%</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="weeMonths" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="hyeoksin">혁신학교<span class="hint">2021.3.1. 이후 지정(재지정)교는 제외</span></label>
             <div class="ctl"><select id="hyeoksin">
@@ -282,7 +282,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
     <aside>
       <div class="sheet" id="sheet" aria-live="polite"></div>
       <div class="fine">
-        <p>근거: 2026학년도 경기도교육공무원인사관리세부기준(유치원, 초등) 제10·11·13·16조. 2027판이 나오면 바뀔 수 있어요.</p>
+        <p>근거: 2027학년도 경기도교육공무원인사관리세부기준(유치원, 초등)(안) 68차 개정(2026.10.28.) 제10·11·13·16조. 희망지 수는 본문에 없어 경기형 인사시스템 안내(일반 3·갑 만기 6희망)를 따랐어요.</p>
         <p>공식 계산이 아니에요. 실제 점수는 학교에서 받는 전보내신 자료로 확인하세요. 비율 가산은 항목마다 월 단위로 계산해 소수점을 버린 뒤 더해요(예: 18.5개월 → 18개월).</p>
         <p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 로그인 이메일과 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부가 저장되고, 2027.3.31.에 모두 지워요.</p>
       </div>
@@ -387,7 +387,7 @@ const DCFG = {
   lastExpired: '마지막 희망이에요. 여기서도 밀리면 임의 배치될 수 있어요.',
 };
 
-// 경기 시·군간(관외) 전보년수 계산 — 2026학년도 도 세부기준(66차, 2025.7.14.)
+// 경기 시·군간(관외) 전보년수 계산 — 2027학년도 도 세부기준(안)(68차, 2026.10.28.)
 // 근거 조항은 각 줄 주석 참고.
 
 function parseDate(s) {
@@ -522,7 +522,7 @@ function calc(input) {
     if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
   }
   const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
-  if (wee) add('특수교육지원센터·Wee센터', wee, `${wee}개월 × 100%`);
+  if (wee) add('특수교육순회교사·Wee센터', wee, `${wee}개월 × 100%`);
 
   // 업무가산 — 1년 단위형 (1년에 3월, 6월~1년 미만 2월)
   const yearly = [
@@ -609,7 +609,7 @@ function calc(input) {
     out.gapMonths = g;
     out.gapExpired = g >= 120 && !input.gapExempt;
   }
-  out.wishCount = out.gapExpired ? '1~4희망' : '1희망';
+  out.wishCount = out.gapExpired ? '갑 만기 · 6희망까지' : '일반 · 3희망까지';
   return out;
 }
 
@@ -683,7 +683,7 @@ function render() {
   else if (r.gapMonths !== undefined) pills.push(`<span class="pill">갑구역 ${Math.floor(r.gapMonths/12)}년 ${r.gapMonths%12}월 근무</span>`);
   pills.push(`<span class="pill">${r.wishCount}</span>`);
   const notes = [...r.warnings];
-  if (r.gapExpired) notes.push('갑 만기자는 1~4희망까지 쓰고, 끝까지 경합하면 생활근거지를 고려해 임의 배정될 수 있어요.');
+  if (r.gapExpired) notes.push('갑 만기자는 관외로 6희망까지 쓰고, 끝까지 경합하면 생활근거지를 고려해 임의 배정될 수 있어요.');
   sheet.innerHTML = `
     <div class="sheet-head"><div class="k">전보년수${$('wishRegion').value ? ' · 희망 ' + esc($('wishRegion').value) : ''}</div>
       <div class="total">${fmtYM(r.totalMonths)}<small>${yrs}년</small></div></div>

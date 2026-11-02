@@ -1,4 +1,4 @@
-// 경기 시·군간(관외) 전보년수 계산 — 2026학년도 도 세부기준(66차, 2025.7.14.)
+// 경기 시·군간(관외) 전보년수 계산 — 2027학년도 도 세부기준(안)(68차, 2026.10.28.)
 // 근거 조항은 각 줄 주석 참고.
 
 function parseDate(s) {
@@ -133,7 +133,7 @@ function calc(input) {
     if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
   }
   const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
-  if (wee) add('특수교육지원센터·Wee센터', wee, `${wee}개월 × 100%`);
+  if (wee) add('특수교육순회교사·Wee센터', wee, `${wee}개월 × 100%`);
 
   // 업무가산 — 1년 단위형 (1년에 3월, 6월~1년 미만 2월)
   const yearly = [
@@ -220,7 +220,7 @@ function calc(input) {
     out.gapMonths = g;
     out.gapExpired = g >= 120 && !input.gapExempt;
   }
-  out.wishCount = out.gapExpired ? '1~4희망' : '1희망';
+  out.wishCount = out.gapExpired ? '갑 만기 · 6희망까지' : '일반 · 3희망까지';
   return out;
 }
 

@@ -32,7 +32,7 @@ assert(r.bonusMonths === Math.floor(48 * 0.3) + 24 + 2, 'couple14+kids24+award2 
 
 // 6. 갑 만기
 r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', gapStart: '2017-03-01' });
-assert(r.gapExpired === true && r.wishCount === '1~4희망', 'gap expired');
+assert(r.gapExpired === true && r.wishCount === '갑 만기 · 6희망까지', 'gap expired');
 
 // 7. 5학급 이하 갑 → 30%
 r = calc({ refDate: '2027-03-01', startDate: '2024-03-01', zone: 'gap', smallSchool: true });

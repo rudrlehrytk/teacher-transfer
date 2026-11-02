@@ -174,7 +174,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <a href="./hwaseong.html">화성오산</a>
   <a href="./bucheon.html">부천</a>
 </nav>
-    <span class="tag">2026학년도 도 세부기준 · 66차 개정</span>
+    <span class="tag">2027학년도 도 세부기준(안) · 68차 개정</span>
     <h1>경기 관외전보 점수 계산·모의지원</h1>
     <p>다른 시·군으로 전보를 낼 때 쓰는 전보년수(현임교 근무년수 + 가산년수)를 계산해요. 관내전보에는 지원청별 가산이 따로 있어 결과가 다를 수 있어요.</p>
   </header>
@@ -243,7 +243,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             <div class="ctl"><input type="number" min="0" max="60" id="sunhoe" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="tonghap">통합학급 교사<span class="hint">30%</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="tonghap" value="0"><span class="unit">개월</span></div></div>
-          <div class="row"><label for="weeMonths">특수교육지원센터·Wee센터<span class="hint">현임기관 근무 100%</span></label>
+          <div class="row"><label for="weeMonths">특수교육순회교사·Wee센터<span class="hint">본청·교육지원청·직속기관 소속, 현임기관 근무 100%</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="weeMonths" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="hyeoksin">혁신학교<span class="hint">2021.3.1. 이후 지정(재지정)교는 제외</span></label>
             <div class="ctl"><select id="hyeoksin">
@@ -282,7 +282,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
     <aside>
       <div class="sheet" id="sheet" aria-live="polite"></div>
       <div class="fine">
-        <p>근거: 2026학년도 경기도교육공무원인사관리세부기준(유치원, 초등) 제10·11·13·16조. 2027판이 나오면 바뀔 수 있어요.</p>
+        <p>근거: 2027학년도 경기도교육공무원인사관리세부기준(유치원, 초등)(안) 68차 개정(2026.10.28.) 제10·11·13·16조. 희망지 수는 본문에 없어 경기형 인사시스템 안내(일반 3·갑 만기 6희망)를 따랐어요.</p>
         <p>공식 계산이 아니에요. 실제 점수는 학교에서 받는 전보내신 자료로 확인하세요. 비율 가산은 항목마다 월 단위로 계산해 소수점을 버린 뒤 더해요(예: 18.5개월 → 18개월).</p>
         <p>점수 계산은 이 화면에서만 해요. 모의 지원을 하면 로그인 이메일과 점수(개월 수), 현재 근무지, 희망지, 만기·우대 여부가 저장되고, 2027.3.31.에 모두 지워요.</p>
       </div>
@@ -313,13 +313,13 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
       <div class="ctl"><select id="curRegion" required></select></div></div>
     <div class="row"><span class="lab">내신 구분<span class="hint">갑구역 만기는 이 지원청 갑구역에서 10년이 된 경우예요. 동일교 5년 만기는 관외에선 일반내신이에요.</span></span>
       <div class="ctl">
-        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반내신 (1희망)</label>
-        <label class="check"><input type="radio" name="kindSel" id="kindGap" value="gap"> 갑구역 만기내신 (1~4희망)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindNormal" value="normal" checked> 일반내신 (3희망까지)</label>
+        <label class="check"><input type="radio" name="kindSel" id="kindGap" value="gap"> 갑구역 만기내신 (6희망까지)</label>
       </div></div>
-    <div class="row"><span class="lab">희망 시·군<span class="hint" id="wishHint">일반전보는 1희망만 쓸 수 있어요.</span></span>
+    <div class="row"><span class="lab">희망 시·군<span class="hint" id="wishHint">일반전보는 3희망까지 쓸 수 있어요.</span></span>
       <div class="ctl wishes" id="wishBox"></div></div>
     <div class="row"><span class="lab">전보 우대<span class="hint">도 기준 제16조①. 해당하면 같은 명부 안에서 먼저 배정돼요.</span></span>
-      <div class="ctl"><label class="check"><input type="checkbox" id="priority"> 우대 대상에 해당 (58세 이상, 유공자, 노부모 부양, 중증장애, 본청·직속기관 2년 등)</label></div></div>
+      <div class="ctl"><label class="check"><input type="checkbox" id="priority"> 우대 대상에 해당 (58세 이상, 유공자, 노부모 부양, 중증장애, 본청·직속기관 2년(특수교육순회교사 제외) 등)</label></div></div>
     <div class="summary" id="applySummary"></div>
     <div class="row"><span class="lab">확인</span>
       <div class="ctl"><label class="check"><input type="checkbox" id="confirmOnce"> 한 번만 지원할 수 있고 제출 후에는 고칠 수 없다는 걸 확인했어요</label></div></div>
@@ -345,7 +345,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 
-// 경기 시·군간(관외) 전보년수 계산 — 2026학년도 도 세부기준(66차, 2025.7.14.)
+// 경기 시·군간(관외) 전보년수 계산 — 2027학년도 도 세부기준(안)(68차, 2026.10.28.)
 // 근거 조항은 각 줄 주석 참고.
 
 function parseDate(s) {
@@ -480,7 +480,7 @@ function calc(input) {
     if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
   }
   const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
-  if (wee) add('특수교육지원센터·Wee센터', wee, `${wee}개월 × 100%`);
+  if (wee) add('특수교육순회교사·Wee센터', wee, `${wee}개월 × 100%`);
 
   // 업무가산 — 1년 단위형 (1년에 3월, 6월~1년 미만 2월)
   const yearly = [
@@ -567,7 +567,7 @@ function calc(input) {
     out.gapMonths = g;
     out.gapExpired = g >= 120 && !input.gapExempt;
   }
-  out.wishCount = out.gapExpired ? '1~4희망' : '1희망';
+  out.wishCount = out.gapExpired ? '갑 만기 · 6희망까지' : '일반 · 3희망까지';
   return out;
 }
 
@@ -641,7 +641,7 @@ function render() {
   else if (r.gapMonths !== undefined) pills.push(`<span class="pill">갑구역 ${Math.floor(r.gapMonths/12)}년 ${r.gapMonths%12}월 근무</span>`);
   pills.push(`<span class="pill">${r.wishCount}</span>`);
   const notes = [...r.warnings];
-  if (r.gapExpired) notes.push('갑 만기자는 1~4희망까지 쓰고, 끝까지 경합하면 생활근거지를 고려해 임의 배정될 수 있어요.');
+  if (r.gapExpired) notes.push('갑 만기자는 관외로 6희망까지 쓰고, 끝까지 경합하면 생활근거지를 고려해 임의 배정될 수 있어요.');
   sheet.innerHTML = `
     <div class="sheet-head"><div class="k">전보년수${$('wishRegion').value ? ' · 희망 ' + esc($('wishRegion').value) : ''}</div>
       <div class="total">${fmtYM(r.totalMonths)}<small>${yrs}년</small></div></div>
@@ -693,7 +693,7 @@ function renderWishInputs() {
   const r = currentCalc();
   // 계산기에서 갑 만기로 나오면 처음 한 번은 만기내신을 골라 둔다
   if (!kindTouched && r.gapExpired) $('kindGap').checked = true;
-  const n = isGapKind() ? 4 : 1;
+  const n = isGapKind() ? 6 : 3; // 2027: 일반 3희망까지, 갑 만기 6희망까지 (경기형 인사시스템)
   const box = $('wishBox');
   const prev = [...box.querySelectorAll('select')].map(s => s.value);
   if (!prev.length && $('wishRegion').value) prev[0] = $('wishRegion').value;
@@ -707,7 +707,7 @@ function renderWishInputs() {
     s.addEventListener('change', renderApplySummary);
     box.appendChild(s);
   }
-  $('wishHint').textContent = isGapKind() ? '갑구역 만기내신은 1~4희망까지 쓸 수 있어요. 4희망까지 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.' : '일반내신은 1희망만 쓸 수 있고, 밀리면 잔류해요.';
+  $('wishHint').textContent = isGapKind() ? '갑구역 만기내신은 6희망까지 쓸 수 있어요. 6희망까지 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.' : '일반내신은 3희망까지 쓸 수 있고, 3희망까지 밀리면 미발령(잔류)이에요.';
   renderApplySummary();
 }
 
@@ -798,10 +798,10 @@ async function loadRankings() {
       <header><span class="tagw">${label}</span><h4>${esc(w)}</h4></header>
       <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${first.length}명</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}${i > 0 ? ' (1희망 지원자 기준)' : ''}</p>
-      ${later ? `<p class="line muted">이 시·군을 2~4희망으로 쓴 갑 만기자 ${later}명은 1희망 배정이 끝난 뒤 남은 자리를 두고 경합해요.</p>` : ''}
+      ${later ? `<p class="line muted">이 시·군을 2희망 이하로 쓴 지원자 ${later}명도 있어요. 앞 희망에서 밀리면 1희망 배정이 끝난 뒤 남은 자리를 두고 경합해요.</p>` : ''}
       <p class="line muted">${a.is_gap_expired
         ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.')
-        : '일반내신은 여기서 밀리면 잔류해요.'}</p>
+        : (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 미발령(잔류)이에요.')}</p>
       <ol class="ladder">${top}</ol>
       ${first.length > 12 ? `<p class="line muted">위 12명까지 표시</p>` : ''}
     </article>`;
