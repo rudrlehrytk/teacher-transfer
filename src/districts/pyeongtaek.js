@@ -22,10 +22,10 @@ const DCFG = {
     { id: 'neulbomPT', type: 'pct', label: '늘봄전담실장', short: '늘봄전담실장', hint: '2025~2026년 임용자가 임기 후 복귀, 2027.3.1.~, 100%', rate: 1.0 },
   ],
   awards: AW4,
-  kindHint: '현임교 5년이면 만기전보예요. 평택 원칙에는 만기·일반 중 누가 먼저 배정되는지 정해져 있지 않아 전보년수 순으로 함께 봐요.',
+  kindHint: '현임교 5년이면 만기전보예요. 만기전보자를 일반전보자보다 먼저 배정해요.',
   kinds: [
     { id: 'normal', tier: 0, short: '일반전보', label: '일반전보 (1희망)', wishes: 1, hint: '일반전보는 1희망만 써요. 밀리면 잔류해요.' },
-    { id: 'expired', tier: 1, short: '만기전보', label: '만기전보 (현임교 5년, 1~3희망)', wishes: 3, hint: '만기전보는 1~3희망까지 써요. 희망교가 다 경합되면 다른 학교로 전보돼요.' },
+    { id: 'expired', tier: 1, short: '만기전보', label: '만기전보 (현임교 5년, 1~3희망)', wishes: 3, hint: '만기전보는 1~3희망까지 써요. 일반전보자보다 먼저 배정되고, 희망교가 다 경합되면 다른 학교로 전보돼요.' },
   ],
   validate({ cur, wishes, r, schoolOf }) {
     if (PT_HAPDONG.includes(cur) && wishes.some(w => PT_HAPDONG.includes(w) && w !== cur)) return '경합학교에서는 다른 경합학교(부용·효덕·갈곶·현화·평택송화·평택안일·현일·진위·청옥)로 전보할 수 없어요.';
@@ -33,7 +33,7 @@ const DCFG = {
       return '갑구역 만기까지 2년 미만 남아서 갑구역 학교로는 낼 수 없어요. 을구역 학교를 골라 주세요.';
     return null;
   },
-  order: 'merged',
+  order: 'expiredFirst', // 사용자 확인(2026-11-02): 만기자 우선 배정
   lastNormal: '마지막 희망이에요. 여기서 밀리면 잔류해요.',
   lastExpired: '마지막 희망이에요. 여기서도 밀리면 다른 학교로 전보돼요.',
 };
