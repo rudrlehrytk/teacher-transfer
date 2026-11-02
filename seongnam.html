@@ -174,6 +174,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <a href="./hwaseong.html">화성오산</a>
   <a href="./bucheon.html">부천</a>
   <a href="./pyeongtaek.html">평택</a>
+  <a href="./gwangmyeong.html">광명</a>
 </nav>
     <span class="tag">2027학년도 도 세부기준(안) · 68차 개정</span>
     <h1>성남 관내전보 점수 계산·모의지원</h1>
@@ -928,7 +929,9 @@ async function loadMine() {
 
 const tierOf = (r) => r.tier ?? (r.is_expired ? 1 : 0);
 // 순위 단계: 만기 우선 지원청은 tier가 높을수록 먼저, 통합 명부 지원청은 모두 같은 단계
-const stage = (r) => C.order === 'expiredFirst' ? tierOf(r) : 0;
+// order: 'expiredFirst' 만기 → 일반(각각 우대 먼저) / 'priorityFirst' 우대 → 만기 → 일반(광명) / 'merged' 통합
+const EXP_FIRST = C.order === 'expiredFirst' || C.order === 'priorityFirst';
+const stage = (r) => C.order === 'priorityFirst' ? (r.has_priority ? 9 : tierOf(r)) : (EXP_FIRST ? tierOf(r) : 0);
 const byScore = (a, b) => (stage(b) - stage(a)) || (b.has_priority - a.has_priority) || (b.total_months - a.total_months) || (b.is_me - a.is_me);
 const kindName = (t) => (KINDS.find(k => k.tier === t) || KINDS[0]).short;
 
@@ -956,11 +959,11 @@ async function loadRankings() {
     const later = all.filter(r => r.wish_order > 1 && !r.is_me);
     const li = (r) => `<li class="${r.is_me ? 'me' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${tierOf(r) ? `<em class="g">${tierOf(r) === 2 ? '구역만기' : '만기'}</em>` : ''}</li>`;
     const notes = [];
-    if (C.order === 'expiredFirst') {
+    if (EXP_FIRST) {
       const higher = pool.filter(r => stage(r) > stage(me)).length;
-      if (higher) notes.push(`이 학교를 1희망으로 쓴 ${stage(me) === 0 ? '만기자' : '구역 만기자'} ${higher}명이 먼저 배정돼요.`);
+      if (higher) notes.push(`이 학교를 1희망으로 쓴 ${C.order === 'priorityFirst' ? '우대·만기자' : stage(me) === 0 ? '만기자' : '구역 만기자'} ${higher}명이 먼저 배정돼요.`);
       const laterHigh = later.filter(r => stage(r) > stage(me)).length;
-      if (laterHigh) notes.push(`뒤 희망으로 이 학교를 쓴 ${stage(me) === 0 ? '만기자' : '구역 만기자'} ${laterHigh}명도 앞 희망에서 밀리면 먼저 배정될 수 있어요.`);
+      if (laterHigh) notes.push(`뒤 희망으로 이 학교를 쓴 ${C.order === 'priorityFirst' ? '우대·만기자' : stage(me) === 0 ? '만기자' : '구역 만기자'} ${laterHigh}명도 앞 희망에서 밀리면 먼저 배정될 수 있어요.`);
       const laterSame = later.filter(r => stage(r) === stage(me)).length;
       if (laterSame) notes.push(`같은 구분에서 뒤 희망으로 이 학교를 쓴 ${laterSame}명도 있어요. 점수가 나보다 높으면 경합할 수 있어요.`);
     } else if (later.length) notes.push(`뒤 희망으로 이 학교를 쓴 ${later.length}명도 있어요. 점수가 나보다 높으면 앞 희망에서 밀렸을 때 경합할 수 있어요.`);
@@ -968,7 +971,7 @@ async function loadRankings() {
     notes.push(!last ? '여기서 밀리면 다음 희망 학교로 넘어가요.' : (myTier ? C.lastExpired : C.lastNormal));
     return `<article class="card">
       <header><span class="tagw">${i + 1}희망</span><h4>${esc(w)}</h4></header>
-      <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${pool.length}명 (1희망 기준${C.order === 'expiredFirst' ? ', 만기자 먼저' : ', 통합 명부'})</span></div>
+      <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${pool.length}명 (1희망 기준${C.order === 'priorityFirst' ? ', 우대 → 만기 → 일반' : EXP_FIRST ? ', 만기자 먼저' : ', 통합 명부'})</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
       ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
       <ol class="ladder">${pool.slice(0, 14).map(li).join('')}</ol>
