@@ -173,6 +173,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <a href="./yongin.html">용인</a>
   <a href="./hwaseong.html">화성오산</a>
   <a href="./bucheon.html" aria-current="page">부천</a>
+  <a href="./pyeongtaek.html">평택</a>
 </nav>
     <span class="tag">2027학년도 도 세부기준(안) · 68차 개정</span>
     <h1>부천 관내전보 점수 계산·모의지원</h1>
@@ -882,6 +883,7 @@ function validate() {
   if (new Set(wishes).size !== wishes.length) return '같은 학교를 두 번 고를 수 없어요.';
   if (wishes.includes(cur)) return '현임교는 희망 학교로 고를 수 없어요.';
   if (k.wishZoneNot && wishes.some(w => (schoolOf(w) || {}).zone === k.wishZoneNot)) return k.wishZoneMsg;
+  if (C.validate) { const e = C.validate({ cur, wishes, r, k, schoolOf }); if (e) return e; }
   if (!$('confirmOnce').checked) return '제출 전 확인란에 체크하세요.';
   return null;
 }

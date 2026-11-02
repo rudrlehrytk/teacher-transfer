@@ -12,6 +12,9 @@ const cases = {
   hwaseong: { cur: '세마초', wish: '동탄초', rows: [
     { user_id: 'e1', current_school: '병점초', wishes: ['동탄초', '청림초'], is_expired: true, has_priority: false, total_months: 70 },
     { user_id: 'g1', current_school: '반송초', wishes: ['동탄초'], is_expired: false, has_priority: false, total_months: 120 } ] },
+  pyeongtaek: { cur: '평택성동초', wish: '죽백초', rows: [
+    { user_id: 'e1', current_school: '송탄초', wishes: ['죽백초', '오성초'], is_expired: true, has_priority: false, total_months: 70 },
+    { user_id: 'g1', current_school: '비전초', wishes: ['죽백초'], is_expired: false, has_priority: false, total_months: 100 } ] },
   bucheon: { cur: '상동초', wish: '중동초', extraWish: true, rows: [
     { user_id: 'g1', current_school: '송내초', wishes: ['중동초'], is_expired: false, has_priority: true, total_months: 40 } ] },
 };

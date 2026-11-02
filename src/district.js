@@ -166,6 +166,7 @@ function validate() {
   if (new Set(wishes).size !== wishes.length) return '같은 학교를 두 번 고를 수 없어요.';
   if (wishes.includes(cur)) return '현임교는 희망 학교로 고를 수 없어요.';
   if (k.wishZoneNot && wishes.some(w => (schoolOf(w) || {}).zone === k.wishZoneNot)) return k.wishZoneMsg;
+  if (C.validate) { const e = C.validate({ cur, wishes, r, k, schoolOf }); if (e) return e; }
   if (!$('confirmOnce').checked) return '제출 전 확인란에 체크하세요.';
   return null;
 }
