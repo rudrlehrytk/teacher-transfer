@@ -816,7 +816,7 @@ gather = function () {
     ...g, zone: sch ? sch.zone : 'gap', couple: false,
     regionRate: sch ? regionRateOf(sch, g) : 0, regionLabel: sch ? sch.label : '',
     smallSchool: !!sm, smallRate: sm ? sm.rate : undefined, smallLabel: sm ? sm.short : undefined,
-    extraPct, extraFixed, hyeoksinRule, hyeoksin: hyeoksinRule ? 'custom' : 'none',
+    extraPct, extraFixed, hyeoksinRule, hyeoksin: C.hyeoksin ? (hyeoksinRule ? 'custom' : 'none') : g.hyeoksin, // 지원청 설정이 없으면 기본(도 기준) 선택값 그대로
     yearlyRates: C.yearlyRates, silseupPerYear: C.silseupPerYear || 1, bonusCapPct: C.bonusCapPct,
     awardTiers: C.awards.map((a, i) => ({ label: a.label, months: a.months, count: num('award' + i) })),
   };
