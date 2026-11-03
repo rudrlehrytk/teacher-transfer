@@ -19,6 +19,9 @@ const cases = {
     { user_id: 'p1', current_school: '광일초', wishes: ['하안초'], is_expired: false, has_priority: true, total_months: 30 },
     { user_id: 'e1', current_school: '소하초', wishes: ['하안초'], is_expired: true, has_priority: false, total_months: 60 },
     { user_id: 'g1', current_school: '가림초', wishes: ['하안초'], is_expired: false, has_priority: false, total_months: 200 } ] },
+  siheung: { cur: '소래초', wish: '배곧초', rows: [
+    { user_id: 'e1', current_school: '정왕초', wishes: ['배곧초', '배곧라온초'], is_expired: true, has_priority: false, total_months: 60 },
+    { user_id: 'g1', current_school: '은계초', wishes: ['배곧초'], is_expired: false, has_priority: false, total_months: 100 } ] },
   bucheon: { cur: '상동초', wish: '중동초', extraWish: true, rows: [
     { user_id: 'g1', current_school: '송내초', wishes: ['중동초'], is_expired: false, has_priority: true, total_months: 40 } ] },
 };
