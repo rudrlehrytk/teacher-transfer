@@ -176,6 +176,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   <a href="./pyeongtaek.html">평택</a>
   <a href="./gwangmyeong.html">광명</a>
   <a href="./siheung.html">시흥</a>
+  <a href="./gwangjuhanam.html">광주하남</a>
 </nav>
     <span class="tag">2027학년도 도 세부기준(안) · 68차 개정</span>
     <h1>성남 관내전보 점수 계산·모의지원</h1>
@@ -796,6 +797,14 @@ let myApp = null;
 
 function smallOpt() { const el = $('smallSel'); return el && el.value !== '' ? C.small[+el.value] : null; }
 
+// 학교별 지역가산에 '해당교 n개월 이상 근무' 조건이 있으면(광주하남 3년) 못 채울 때 0
+function regionRateOf(sch, g) {
+  if (!sch.minMonths) return sch.rate;
+  const s = parseDate(g.startDate), ref = parseDate(g.refDate);
+  if (!s || !ref || cmp(s, ref) >= 0) return 0;
+  return roundMonths(serviceMD(s, ref, g.exclusions)) >= sch.minMonths ? sch.rate : 0;
+}
+
 const _gather = gather;
 gather = function () {
   const g = _gather();
@@ -813,7 +822,7 @@ gather = function () {
   if (C.hyeoksin && $('hyeoksin').value !== 'none') { const o = C.hyeoksin[+$('hyeoksin').value]; hyeoksinRule = { label: o.short, rate: o.rate, min: o.min }; }
   return {
     ...g, zone: sch ? sch.zone : 'gap', couple: false,
-    regionRate: sch ? sch.rate : 0, regionLabel: sch ? sch.label : '',
+    regionRate: sch ? regionRateOf(sch, g) : 0, regionLabel: sch ? sch.label : '',
     smallSchool: !!sm, smallRate: sm ? sm.rate : undefined, smallLabel: sm ? sm.short : undefined,
     extraPct, extraFixed, hyeoksinRule, hyeoksin: hyeoksinRule ? 'custom' : 'none',
     yearlyRates: C.yearlyRates, silseupPerYear: C.silseupPerYear || 1, bonusCapPct: C.bonusCapPct,
