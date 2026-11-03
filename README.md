@@ -16,6 +16,9 @@
 - `supabase/` — DB 마이그레이션 (Supabase 프로젝트 `teacher-transfer`)
 - `test/` — `node test/calc.test.js` 계산 테스트, `node test/run.js`·`run2.js` 가짜 Supabase로 화면 흐름 테스트(Playwright)
 
+## 공제회 월급 비중 계산기
+- `gongjehoe/index.html` — 교직원공제회 장기저축급여·대여 상환이 월급에서 차지하는 비중 계산기 (단독 페이지, build.py와 무관). 주소: `/gongjehoe/`
+
 ## 배포
 GitHub Pages(main 브랜치 루트). Supabase Authentication > URL Configuration에 Pages 주소를 Site URL·Redirect URL로 등록해야 이메일 로그인 링크가 이 페이지로 돌아온다.
 

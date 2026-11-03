@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="교직원공제회 장기저축급여·대여 상환이 교사 월급에서 차지하는 비중 계산기 (2026 교원 봉급표 기준)">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}body{margin:0;font:14px/1.5 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>공제회 월급 비중 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Layout: 왼쪽은 급여명세서 순서대로 입력(1~6), 오른쪽은 명세서 모양 결과(7). 폰에서는 한 줄로 쌓임 */
+:root{
+  --bg:#F1F4F1; --surface:#FFFFFF; --sunk:#E8EDE9; --ink:#18231E; --muted:#5A6A61; --line:#D3DCD6;
+  --accent:#22574A; --accent-ink:#FFFFFF;
+  --c-tax:#8A958F; --c-ins:#B8C2BC; --c-etc:#D6DDD8; --c-save:#3A779B; --c-old:#B27A26; --c-new:#C0453A; --c-net:#8FC2A2;
+  --ok:#2E7A4D; --warn:#A86F12; --bad:#B83A2F;
+  --f-display:"Nanum Myeongjo", "Noto Serif KR", serif;
+  --f-body:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111714; --surface:#19211D; --sunk:#141B17; --ink:#E4ECE7; --muted:#9AAAA1; --line:#2B3731;
+  --accent:#6DB497; --accent-ink:#0F1A15;
+  --c-tax:#6F7B75; --c-ins:#56625C; --c-etc:#3E4943; --c-save:#6AA7CB; --c-old:#D9A04A; --c-new:#E2675B; --c-net:#3F7C5E;
+  --ok:#5BBE85; --warn:#E0A84A; --bad:#EE7468; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#111714; --surface:#19211D; --sunk:#141B17; --ink:#E4ECE7; --muted:#9AAAA1; --line:#2B3731;
+  --accent:#6DB497; --accent-ink:#0F1A15;
+  --c-tax:#6F7B75; --c-ins:#56625C; --c-etc:#3E4943; --c-save:#6AA7CB; --c-old:#D9A04A; --c-new:#E2675B; --c-net:#3F7C5E;
+  --ok:#5BBE85; --warn:#E0A84A; --bad:#EE7468; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 56px}
+.wrap{max-width:1180px;margin:0 auto}
+header{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:600}
+h1{font-family:var(--f-display);font-size:clamp(26px,4vw,36px);line-height:1.2;margin:0;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.inputs{display:flex;flex-direction:column;gap:14px;min-width:0}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.step-h{display:flex;align-items:baseline;gap:10px}
+.num{font-family:var(--f-num);font-size:12px;color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:1px 6px;font-weight:600}
+.step-h h2{font-size:16px;margin:0;font-weight:700}
+.step-h .side{margin-left:auto;font-family:var(--f-num);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 130px}
+.field.sm{flex:0 1 110px}
+label,.lbl{font-size:12.5px;color:var(--muted);font-weight:500}
+input[type=text],input[type=number],select{font:inherit;font-family:var(--f-num);font-size:14px;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0;font-variant-numeric:tabular-nums}
+select{font-family:var(--f-body)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.money-sub{font-size:11.5px;color:var(--muted);min-height:1em;font-family:var(--f-body)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--sunk)}
+.seg button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--ink);padding:8px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.toggle{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip .box{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;display:inline-grid;place-items:center;font-size:10px;line-height:1}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.check input{width:17px;height:17px;accent-color:var(--accent)}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--sunk);width:max-content}
+.stepper button{font:inherit;border:0;background:transparent;color:var(--ink);width:34px;height:36px;cursor:pointer;font-size:17px}
+.stepper output{min-width:34px;text-align:center;font-family:var(--f-num);font-weight:600}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px}
+.kv b{font-family:var(--f-num);font-weight:500;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+details.step summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.step summary::-webkit-details-marker{display:none}
+details.step summary h2{font-size:15px;margin:0}
+details.step summary .caret{margin-left:auto;color:var(--muted);font-size:12px}
+details[open] summary .caret::after{content:"접기"} details:not([open]) summary .caret::after{content:"펼치기"}
+.flag{font-size:12px;border-radius:999px;padding:1px 9px;font-weight:600;border:1px solid currentColor}
+.flag.manual{color:var(--warn)} .flag.auto{color:var(--ok)}
+.items{display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.item-h{display:flex;align-items:center;gap:8px}
+.tag{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:4px;color:#fff}
+.tag.save{background:var(--c-save)} .tag.loan{background:var(--c-old)} .tag.newloan{background:var(--c-new)}
+:root[data-theme="dark"] .tag,.tag{color:var(--bg)}
+.item-h input{flex:1;font-family:var(--f-body);background:transparent;border-color:transparent;padding:4px 6px}
+.item-h input:hover{border-color:var(--line)}
+.del{font:inherit;font-size:12.5px;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:4px}
+.del:hover{color:var(--bad)}
+.item-out{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.item-out b{font-family:var(--f-num);color:var(--ink);font-weight:600}
+.adds{display:flex;gap:8px;flex-wrap:wrap}
+.add{font:inherit;font-size:13.5px;border:1px dashed var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:7px 12px;cursor:pointer}
+.add:hover{border-color:var(--accent);color:var(--accent)}
+.empty{font-size:13px;color:var(--muted);padding:6px 2px;margin:0}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+
+/* 결과 */
+.results{display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:900px){.results{position:static}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.headline{display:flex;flex-direction:column;gap:10px}
+.headline .q{font-size:13px;color:var(--muted);margin:0}
+.big{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.big .pct{font-family:var(--f-num);font-size:clamp(44px,7vw,62px);line-height:1;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.big .from{font-size:13.5px;color:var(--muted);padding-bottom:6px}
+.big .from b{font-family:var(--f-num);color:var(--ink)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;flex:1 1 140px;min-width:0}
+.pill span{font-size:12px;color:var(--muted)}
+.pill b{font-family:var(--f-num);font-size:17px;font-variant-numeric:tabular-nums}
+.pill.dsr{border-left:4px solid var(--c)} .pill.dsr em{font-style:normal;font-size:12px;font-weight:700;color:var(--c)}
+.stub{width:100%;border-collapse:collapse;font-size:13.5px}
+.stub th,.stub td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.stub th:first-child,.stub td:first-child{text-align:left}
+.stub thead th{font-size:12px;color:var(--muted);font-weight:600;border-bottom:2px solid var(--ink)}
+.stub td{font-family:var(--f-num)} .stub td:first-child{font-family:var(--f-body)}
+.stub tr.sub td{color:var(--muted)}
+.stub tr.total td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+.stub tr.gj td:first-child::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;background:var(--sw)}
+.stub td.diff-up{color:var(--bad)} .stub td.diff-dn{color:var(--ok)}
+.card h3{margin:0 0 10px;font-size:15px}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:66px 1fr;gap:10px;align-items:center}
+.bar-row span{font-size:12.5px;color:var(--muted)}
+.bar{display:flex;height:26px;border-radius:5px;overflow:hidden;background:var(--sunk)}
+.bar i{display:block;height:100%;transition:flex-basis .3s}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:var(--sw);vertical-align:-1px}
+.chart-box{position:relative;height:250px}
+.tbl-wrap{overflow-x:auto}
+.loan-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:460px}
+.loan-tbl th,.loan-tbl td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.loan-tbl th:first-child,.loan-tbl td:first-child{text-align:left}
+.loan-tbl th{font-size:12px;color:var(--muted);font-weight:600}
+.loan-tbl td{font-family:var(--f-num)} .loan-tbl td:first-child{font-family:var(--f-body)}
+.notes{font-size:12.5px;color:var(--muted);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.warnbox{font-size:12.5px;border:1px solid var(--warn);color:var(--ink);background:color-mix(in srgb, var(--warn) 10%, transparent);border-radius:6px;padding:8px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">2026 교원 봉급표 · 한국교직원공제회</span>
+  <h1>공제회 월급 비중 계산기</h1>
+  <p>장기저축급여(정기적금)와 대여(대출) 상환이 내 월급에서 얼마나 차지하는지 봅니다. 1번부터 차례로 입력하면 오른쪽 결과가 바로 바뀝니다.</p>
+</header>
+
+<div class="grid">
+<div class="inputs">
+
+  <section class="step" aria-labelledby="h1s">
+    <div class="step-h"><span class="num">1</span><h2 id="h1s">계산할 공제회 항목</h2></div>
+    <div class="toggle">
+      <button class="chip" id="useSaving" aria-pressed="true"><span class="box">✓</span>정기적금 (장기저축급여 등)</button>
+      <button class="chip" id="useLoan" aria-pressed="true"><span class="box">✓</span>대출 (대여)</button>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="h2s">
+    <div class="step-h"><span class="num">2</span><h2 id="h2s">호봉</h2><span class="side" id="bongOut"></span></div>
+    <div class="row">
+      <div class="field sm"><label for="hobong">호봉</label><select id="hobong"></select></div>
+      <div class="field sm"><label for="career">교육경력 (년)</label><input type="number" id="career" min="0" max="45" inputmode="numeric"></div>
+      <p class="hint" style="flex:1 1 200px">교육경력은 정근수당·가산금 계산용입니다. 호봉−9로 자동 입력되며, 다르면 고쳐 주세요.</p>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="h3s">
+    <div class="step-h"><span class="num">3</span><h2 id="h3s">담임 / 전담</h2><span class="side" id="roleOut"></span></div>
+    <div class="row" style="align-items:center">
+      <div class="seg" role="group" aria-label="담임 여부">
+        <button id="roleDamim" aria-pressed="false">담임</button>
+        <button id="roleJeondam" aria-pressed="true">전담</button>
+      </div>
+      <label class="check"><input type="checkbox" id="bojik">보직교사(부장) 겸임</label>
+    </div>
+    <p class="hint">담임수당 월 200,000원 · 보직교사수당 월 150,000원 (2026)</p>
+  </section>
+
+  <section class="step" aria-labelledby="h4s">
+    <div class="step-h"><span class="num">4</span><h2 id="h4s">부양가족</h2><span class="side" id="famOut"></span></div>
+    <div class="row" style="align-items:center;gap:14px 22px">
+      <label class="check"><input type="checkbox" id="spouse">배우자</label>
+      <div class="field" style="flex:0 0 auto"><span class="lbl">자녀</span>
+        <div class="stepper"><button data-step="kids" data-d="-1" aria-label="자녀 수 줄이기">−</button><output id="kidsOut">0</output><button data-step="kids" data-d="1" aria-label="자녀 수 늘리기">+</button></div></div>
+      <div class="field" style="flex:0 0 auto"><span class="lbl">그 밖 부양가족 (부모 등)</span>
+        <div class="stepper"><button data-step="others" data-d="-1" aria-label="부양가족 수 줄이기">−</button><output id="othersOut">0</output><button data-step="others" data-d="1" aria-label="부양가족 수 늘리기">+</button></div></div>
+    </div>
+    <p class="hint">가족수당: 배우자 4만 · 첫째 5만 · 둘째 8만 · 셋째부터 12만 · 그 밖 부양가족 2만 (자녀 외 합계 4명 이내)</p>
+  </section>
+
+  <details class="step" id="adv">
+    <summary><span class="num" style="background:var(--muted)">+</span><h2>명세서와 맞추기 (세금·공제 직접 입력)</h2><span class="caret"></span></summary>
+    <p class="hint">빈칸은 자동 추정합니다. 값을 넣으면 그 값을 씁니다. 내 급여명세서 값을 넣으면 가장 정확합니다.</p>
+    <div id="manualWarn" class="warnbox" hidden><span id="manualWarnTxt"></span><button class="btn" id="clearDed">모두 자동 추정으로</button></div>
+    <div class="row">
+      <div class="field"><label for="overtime">시간외근무수당 (정액분)</label><input type="text" inputmode="numeric" id="overtime"></div>
+      <div class="field"><label for="research">교원연구비</label><input type="text" inputmode="numeric" id="research" placeholder="자동"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="taxFam">소득세 공제가족 (본인 포함)</label><input type="number" id="taxFam" min="1" max="11" placeholder="자동"></div>
+      <div class="field"><label for="taxKids">그중 8~20세 자녀</label><input type="number" id="taxKids" min="0" max="10" value="0"></div>
+    </div>
+    <div class="row" id="dedFields"></div>
+  </details>
+
+  <section class="step" aria-labelledby="h5s">
+    <div class="step-h"><span class="num">5</span><h2 id="h5s">지금 공제회에 있는 것</h2><span class="side" id="exOut"></span></div>
+    <p class="hint">급여에서 빠지고 있는 장기저축급여와 대여 상환을 입력합니다. 명세서의 ‘교직원공제회비’는 이것들의 합계입니다.</p>
+    <div class="items" id="exList"></div>
+    <div class="adds"><button class="add" data-add="ex-saving">+ 적금 추가</button><button class="add" data-add="ex-loan">+ 대출 추가</button></div>
+  </section>
+
+  <section class="step" aria-labelledby="h6s">
+    <div class="step-h"><span class="num">6</span><h2 id="h6s">새로 하거나 늘릴 것</h2><span class="side" id="newOut"></span></div>
+    <p class="hint">대여 상품을 고르면 공제회 홈페이지 고시 금리가 들어갑니다. 금액·기간·상환방식을 넣으면 매달 상환액을 계산합니다.</p>
+    <div class="items" id="newList"></div>
+    <div class="adds"><button class="add" data-add="new-saving">+ 적금 추가</button><button class="add" data-add="new-loan">+ 대출 추가</button></div>
+  </section>
+</div>
+
+<aside class="results" aria-label="계산 결과">
+  <div class="card headline">
+    <p class="q"><span class="num">7</span>&nbsp; 공제회로 나가는 돈이 ‘공제회 빼기 전 실수령액’에서 차지하는 비중</p>
+    <div class="big"><span class="pct" id="pctAfter">0%</span><span class="from">현재 <b id="pctBefore">0%</b> → 신규 반영 후<br>월 <b id="gjAfter">0</b>원</span></div>
+    <div class="pills">
+      <div class="pill"><span>세전 월급 대비</span><b id="pGross">0%</b></div>
+      <div class="pill"><span>최종 실수령액</span><b id="pNet">0원</b></div>
+      <div class="pill dsr" id="dsrPill"><span>대출 원리금 ÷ 연 세전소득 (DSR식)</span><b id="pDsr">0%</b><em id="dsrTag"></em></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>월급 명세 비교 (평달 기준)</h3>
+    <div class="tbl-wrap"><table class="stub">
+      <thead><tr><th>항목</th><th>현재</th><th>신규 반영 후</th><th>차이</th></tr></thead>
+      <tbody id="stubBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>세전 월급이 나뉘는 모습</h3>
+    <div class="bars">
+      <div class="bar-row"><span>현재</span><div class="bar" id="barBefore"></div></div>
+      <div class="bar-row"><span>신규 후</span><div class="bar" id="barAfter"></div></div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card">
+    <h3>앞으로 매달 공제회로 나가는 돈</h3>
+    <p class="hint" id="chartHint" style="margin:-4px 0 8px"></p>
+    <div class="chart-box"><canvas id="chart" aria-label="월별 공제회 부담 추이"></canvas></div>
+  </div>
+
+  <div class="card" id="loanCard">
+    <h3>대출 상환 요약</h3>
+    <div class="tbl-wrap"><table class="loan-tbl">
+      <thead><tr><th>대출</th><th>첫 달 상환</th><th>최대 월상환</th><th>총 이자</th><th>끝나는 때</th></tr></thead>
+      <tbody id="loanBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>계산 기준</h3>
+    <ul class="notes">
+      <li>봉급은 공무원보수규정 [별표 11] 2026년 교원 봉급표, 수당은 2026년 공무원수당 등에 관한 규정 기준입니다.</li>
+      <li>평달 기준입니다. 정근수당(1·7월)·명절휴가비·성과상여금이 나오는 달은 빠져 있습니다.</li>
+      <li>기여금·건강보험은 전년도 소득으로 정해져 추정치와 차이가 납니다. 소득세는 간이세액표 산식 추정입니다. 정확히 보려면 ‘명세서와 맞추기’에 실제 값을 넣으세요.</li>
+      <li>봉급 인상과 호봉 승급은 앞으로의 그래프에 반영하지 않았습니다.</li>
+      <li>DSR식 비율은 첫 12개월 대출 원리금 합계 ÷ (월급×12 + 정근수당 + 명절휴가비)로 셌습니다. 만기일시상환 원금은 넣지 않았습니다.</li>
+    </ul>
+  </div>
+</aside>
+</div>
+</div>
+
+<script>
+const BONG=[2041500,2103300,2166000,2228500,2291500,2354400,2416600,2478600,2495600,2516700,2538300,2585900,2657500,2773700,2889700,3006200,3121000,3241500,3361200,3481000,3600700,3733600,3865300,3997500,4129400,4261900,4400100,4538000,4682100,4826800,4971100,5115200,5261600,5407500,5553600,5699100,5825700,5952500,6079500,6205700];
+const DED=[["pension","일반기여금"],["health","건강보험"],["care","노인장기요양보험"],["tax","소득세"],["local","지방소득세"],["etc","기타 공제 (교원연합회비·급식비 등)"]];
+let uid=1;
+const PRODUCTS={
+  general:{label:"일반대여",rate:4.95,note:"연 4.95% 변동 (2026.07.01. 기준) · 원리금균등 최장 10년, 거치 1~2년이면 상환 최대 9년 · 중도상환수수료 없음"},
+  marriage:{label:"복지누리 · 행복누리 결혼대여",rate:3.90,note:"연 3.90% 변동 (2025.05.01. 기준) · 1인 1회 최고 3,000만 원 · 본인·자녀 결혼 전후 6개월 이내"},
+  birth:{label:"복지누리 · 희망누리 출산대여",rate:3.90,note:"연 3.90% 변동 (2025.05.01. 기준) · 자녀당 최고 1,000만 원"},
+  house:{label:"복지누리 · 든든누리 주택대여",rate:3.90,note:"연 3.90% 변동 (2025.05.01. 기준) · 원리금균등 최대 10년"},
+  custom:{label:"직접 입력",rate:null,note:""}
+};
+const DEFAULT={
+  useSaving:true,useLoan:true,hobong:9,career:0,careerTouched:false,role:"damim",bojik:false,spouse:false,kids:0,others:0,
+  overtime:null,research:null,taxFam:null,taxKids:0,
+  ded:{pension:null,health:null,care:null,tax:null,local:null,etc:null},
+  ex:[],
+  nw:[]
+};
+let S;
+try{S=JSON.parse(localStorage.getItem("gjh-calc-v2"))}catch(e){S=null}
+if(!S||!S.ded)S=JSON.parse(JSON.stringify(DEFAULT));
+S.ex=S.ex.filter(r=>!/\(예시\)/.test(r.name));S.nw=S.nw.filter(r=>!/\(예시\)/.test(r.name));
+[...S.ex,...S.nw].forEach(r=>{r.id=uid++;if(r.kind==="loan"&&!r.product){if(r.rate===4.5){r.product="general";r.rate=4.95}else r.product="custom"}});
+try{localStorage.removeItem("gjh-calc-v1")}catch(e){}
+function save(){try{localStorage.setItem("gjh-calc-v2",JSON.stringify(S))}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const won=n=>Math.round(n).toLocaleString("ko-KR");
+const pct=(a,b)=>b>0?(a/b*100):0;
+const f10=n=>Math.floor(n/10)*10;
+const parseMoney=v=>{const d=String(v).replace(/[^\d]/g,"");return d===""?null:Number(d)};
+function korUnit(n){if(!n)return"";const eok=Math.floor(n/1e8),man=Math.round((n%1e8)/1e4);let s="";if(eok)s+=eok+"억 ";if(man)s+=man.toLocaleString("ko-KR")+"만";return (s.trim()||"0")+" 원"}
+
+/* ---------- 급여 ---------- */
+function jgAdd(c){return c<5?30000:c<10?50000:c<15?60000:c<20?80000:c<25?110000:130000}
+function jgRate(c){return c<1?0:Math.min(0.5,Math.floor(c)*0.05)}
+function familyPay(){
+  let kids=0;for(let i=1;i<=S.kids;i++)kids+=i===1?50000:i===2?80000:120000;
+  let room=Math.max(0,4-S.kids),sp=0,ot=0;
+  if(S.spouse&&room>0){sp=40000;room--}
+  ot=Math.min(S.others,room)*20000;
+  return {sp,kids,ot,total:sp+kids+ot};
+}
+function wageDed(g){if(g<=5e6)return g*.7;if(g<=15e6)return 3.5e6+(g-5e6)*.4;if(g<=45e6)return 7.5e6+(g-15e6)*.15;if(g<=1e8)return 12e6+(g-45e6)*.05;return 14.75e6+(g-1e8)*.02}
+function specialDed(g,n){
+  if(n===1){if(g<=3e7)return 3.1e6+g*.04;if(g<=4.5e7)return 3.1e6+g*.04-(g-3e7)*.05;if(g<=7e7)return 3.1e6+g*.015;if(g<=1.2e8)return 3.1e6+g*.005;return 0}
+  if(n===2){if(g<=3e7)return 3.6e6+g*.04;if(g<=4.5e7)return 3.6e6+g*.04-(g-3e7)*.05;if(g<=7e7)return 3.6e6+g*.02;if(g<=1.2e8)return 3.6e6+g*.01;return 0}
+  let b;if(g<=3e7)b=5e6+g*.07;else if(g<=4.5e7)b=5e6+g*.07-(g-3e7)*.05;else if(g<=7e7)b=5e6+g*.05;else if(g<=1.2e8)b=5e6+g*.03;else return 0;
+  if(g>4e7)b+=(g-4e7)*.04;return b}
+function progressive(t){const br=[[14e6,.06],[5e7,.15],[8.8e7,.24],[1.5e8,.35],[3e8,.38],[5e8,.4],[1e9,.42],[Infinity,.45]];let tax=0,p=0;for(const[c,r]of br){if(t>p)tax+=(Math.min(t,c)-p)*r;p=c}return tax}
+function taxCredit(calc,g){const c=calc<=1.3e6?calc*.55:715000+(calc-1.3e6)*.3;let lim;if(g<=3.3e7)lim=740000;else if(g<=7e7)lim=Math.max(660000,740000-(g-3.3e7)*.008);else if(g<=1.2e8)lim=Math.max(500000,660000-(g-7e7)*.5);else lim=Math.max(200000,500000-(g-1.2e8)*.5);return Math.min(c,lim)}
+function incomeTax(m,n,k){
+  const g=m*12,inc=g-wageDed(g),pen=Math.min(m,6370000)*.045*12;
+  const tb=Math.max(0,inc-1.5e6*n-pen-specialDed(g,Math.min(n,3)));
+  const calc=progressive(tb);let t=(calc-taxCredit(calc,g))/12;
+  t-= k<=0?0:k===1?20830:k===2?45830:45830+(k-2)*33330;
+  return f10(Math.max(0,t));
+}
+function payroll(){
+  const bong=BONG[S.hobong-1],c=S.career;
+  const fam=familyPay();
+  const researchAuto=c>=5?60000:75000;
+  const research=S.research??researchAuto;
+  const items={bong,jg:jgAdd(c),meal:160000,gyojik:250000,damim:S.role==="damim"?200000:0,bojik:S.bojik?150000:0,fam:fam.total,overtime:S.overtime||0,research};
+  const gross=Object.values(items).reduce((a,b)=>a+b,0);
+  const taxable=gross-items.meal-items.research;
+  const yearlyExtra=bong*jgRate(c)*2+bong*.6*2;
+  const annualGross=gross*12+yearlyExtra;
+  const std=(taxable*12+yearlyExtra)/12/1.035;
+  const famN=S.taxFam??(1+(S.spouse?1:0)+S.kids+S.others);
+  const auto={pension:f10(std*.09),health:f10(std*.03595)};
+  auto.care=f10((S.ded.health??auto.health)*.1314);
+  auto.tax=incomeTax(taxable,famN,S.taxKids||0);
+  auto.local=f10((S.ded.tax??auto.tax)*.1);
+  auto.etc=0;
+  const ded={};DED.forEach(([k])=>ded[k]=S.ded[k]??auto[k]);
+  const taxes=ded.tax+ded.local,ins=ded.pension+ded.health+ded.care,etc=ded.etc;
+  return {items,fam,gross,taxable,annualGross,auto,ded,taxes,ins,etc,famN,pre:gross-taxes-ins-etc};
+}
+
+/* ---------- 공제회 ---------- */
+function schedule(P,ratePct,grace,n,method){
+  const r=(ratePct||0)/100/12,pay=[],intr=[];let bal=P||0;n=Math.max(1,Math.round(n||1));
+  for(let m=0;m<grace;m++){const i=bal*r;pay.push(i);intr.push(i)}
+  const A=r>0?bal*r/(1-Math.pow(1+r,-n)):bal/n,pp=bal/n;let balloon=0;
+  for(let m=0;m<n;m++){
+    const i=bal*r;let p;
+    if(method==="equal"){p=A;bal-=A-i}
+    else if(method==="principal"){p=pp+i;bal-=pp}
+    else {p=i;if(m===n-1){balloon=bal;bal=0}}
+    pay.push(p);intr.push(i);
+  }
+  return {pay,intr,balloon};
+}
+function rowSeries(r,isNew){
+  if(r.kind==="saving"){return {kind:"saving",monthly:r.monthly||0,months:r.months||0}}
+  if(!isNew&&r.fixed){const n=r.months||1;return {kind:"loan",pay:Array(n).fill(r.fixed),intr:Array(n).fill(0),balloon:0,fixed:true}}
+  const grace=isNew?Math.round((r.grace||0)*12):0;
+  const n=isNew?Math.round((r.years||1)*12):(r.months||1);
+  return {kind:"loan",...schedule(isNew?r.amount:r.balance,r.rate,grace,n,r.method)};
+}
+function compute(){
+  const P=payroll();
+  const ex=S.ex.filter(r=>r.kind==="saving"?S.useSaving:S.useLoan).map(r=>({r,s:rowSeries(r,false)}));
+  const nw=S.nw.filter(r=>r.kind==="saving"?S.useSaving:S.useLoan).map(r=>({r,s:rowSeries(r,true)}));
+  let H=12;[...ex,...nw].forEach(({s})=>{if(s.kind==="loan")H=Math.max(H,s.pay.length);else if(s.months)H=Math.max(H,s.months)});
+  H=Math.min(H,480);
+  const at=(list,kind,m)=>list.reduce((a,{s})=>a+(s.kind!==kind?0:kind==="saving"?((s.months===0||m<s.months)?s.monthly:0):(s.pay[m]||0)),0);
+  const series={save:[],old:[],nw:[]};
+  for(let m=0;m<H;m++){series.save.push(at(ex,"saving",m)+at(nw,"saving",m));series.old.push(at(ex,"loan",m));series.nw.push(at(nw,"loan",m))}
+  const b={save:at(ex,"saving",0),loan:at(ex,"loan",0)};
+  const a={save:b.save+at(nw,"saving",0),loan:b.loan+at(nw,"loan",0)};
+  const yr=list=>{let t=0;for(let m=0;m<12;m++)t+=at(list,"loan",m);return t};
+  return {P,ex,nw,H,series,b,a,dsrB:pct(yr(ex),P.annualGross),dsrA:pct(yr(ex)+yr(nw),P.annualGross)};
+}
+
+/* ---------- 입력 UI ---------- */
+const hob=$("hobong");BONG.forEach((v,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=(i+1)+"호봉";hob.appendChild(o)});
+function moneyInput(id,val,ph){return `<input type="text" inputmode="numeric" id="${id}" value="${val==null?"":won(val)}" placeholder="${ph||""}">`}
+function itemHTML(r,where){
+  const isNew=where==="nw",p=where+"-"+r.id;
+  if(r.kind==="saving"){
+    return `<div class="item" data-where="${where}" data-id="${r.id}">
+      <div class="item-h"><span class="tag save">적금</span><input type="text" id="${p}-name" data-f="name" value="${r.name.replace(/"/g,"&quot;")}" aria-label="항목 이름"><button class="del" data-del>삭제</button></div>
+      <div class="row">
+        <div class="field"><label for="${p}-monthly">월 납입액 (원)</label>${moneyInput(p+"-monthly",r.monthly)}<span class="money-sub" data-sub="monthly"></span></div>
+        <div class="field sm"><label for="${p}-months">남은 납입 개월</label><input type="number" id="${p}-months" data-f="months" min="0" value="${r.months||0}" placeholder="0=계속"></div>
+      </div>
+      <p class="hint">남은 납입 개월 0은 끝없이 계속 납입으로 봅니다.</p></div>`;
+  }
+  const methodSel=`<select id="${p}-method" data-f="method">
+      <option value="equal"${r.method==="equal"?" selected":""}>원리금균등</option>
+      <option value="principal"${r.method==="principal"?" selected":""}>원금균등</option>
+      <option value="bullet"${r.method==="bullet"?" selected":""}>만기일시 (이자만 매달)</option></select>`;
+  const prod=PRODUCTS[r.product]||PRODUCTS.custom;
+  const prodSel=`<div class="field"><label for="${p}-product">공제회 대여 상품</label><select id="${p}-product" data-f="product">${Object.entries(PRODUCTS).map(([k,v])=>`<option value="${k}"${(r.product||"custom")===k?" selected":""}>${v.label}${v.rate?` (${v.rate.toFixed(2)}%)`:""}</option>`).join("")}</select></div>`;
+  const prodNote=prod.note?`<p class="hint">${prod.note} · 공제회 홈페이지 확인</p>`:"";
+  if(isNew){
+    return `<div class="item" data-where="${where}" data-id="${r.id}">
+      <div class="item-h"><span class="tag newloan">신규 대출</span><input type="text" id="${p}-name" data-f="name" value="${r.name.replace(/"/g,"&quot;")}" aria-label="항목 이름"><button class="del" data-del>삭제</button></div>
+      <div class="row">${prodSel}</div>${prodNote}
+      <div class="row">
+        <div class="field"><label for="${p}-amount">대출 금액 (원)</label>${moneyInput(p+"-amount",r.amount)}<span class="money-sub" data-sub="amount"></span></div>
+        <div class="field sm"><label for="${p}-rate">연 금리 (%)</label><input type="number" id="${p}-rate" data-f="rate" step="0.01" min="0" value="${r.rate}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="${p}-method">상환 방식</label>${methodSel}</div>
+        <div class="field sm"><label for="${p}-years">상환 기간 (년)</label><input type="number" id="${p}-years" data-f="years" min="0.5" max="40" step="0.5" value="${r.years}"></div>
+        <div class="field sm"><label for="${p}-grace">거치 기간 (년)</label><input type="number" id="${p}-grace" data-f="grace" min="0" max="10" step="0.5" value="${r.grace||0}"></div>
+      </div>
+      <div class="item-out" data-out></div></div>`;
+  }
+  return `<div class="item" data-where="${where}" data-id="${r.id}">
+    <div class="item-h"><span class="tag loan">기존 대출</span><input type="text" id="${p}-name" data-f="name" value="${r.name.replace(/"/g,"&quot;")}" aria-label="항목 이름"><button class="del" data-del>삭제</button></div>
+    <div class="row">${prodSel}</div>${prodNote}
+    <div class="row">
+      <div class="field"><label for="${p}-balance">남은 원금 (원)</label>${moneyInput(p+"-balance",r.balance)}<span class="money-sub" data-sub="balance"></span></div>
+      <div class="field sm"><label for="${p}-rate">연 금리 (%)</label><input type="number" id="${p}-rate" data-f="rate" step="0.01" min="0" value="${r.rate}"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="${p}-method">상환 방식</label>${methodSel}</div>
+      <div class="field sm"><label for="${p}-months">남은 개월</label><input type="number" id="${p}-months" data-f="months" min="1" max="480" value="${r.months}"></div>
+      <div class="field"><label for="${p}-fixed">월 상환액 (알면 입력)</label>${moneyInput(p+"-fixed",r.fixed,"자동 계산")}</div>
+    </div>
+    <div class="item-out" data-out></div></div>`;
+}
+function renderLists(){
+  for(const where of ["ex","nw"]){
+    const el=$(where==="ex"?"exList":"newList");
+    const rows=S[where].filter(r=>r.kind==="saving"?S.useSaving:S.useLoan);
+    el.innerHTML=rows.length?rows.map(r=>itemHTML(r,where)).join(""):`<p class="empty">${where==="ex"?"입력한 항목이 없습니다.":"추가할 항목이 없습니다."}</p>`;
+  }
+  document.querySelectorAll('[data-add$="saving"]').forEach(b=>b.hidden=!S.useSaving);
+  document.querySelectorAll('[data-add$="loan"]').forEach(b=>b.hidden=!S.useLoan);
+}
+function renderDedFields(){
+  $("dedFields").innerHTML=DED.map(([k,l])=>`<div class="field"><label for="ded-${k}">${l}</label>${moneyInput("ded-"+k,S.ded[k],"자동")}</div>`).join("");
+}
+function syncStatic(){
+  $("useSaving").setAttribute("aria-pressed",S.useSaving);$("useSaving").querySelector(".box").textContent=S.useSaving?"✓":"";
+  $("useLoan").setAttribute("aria-pressed",S.useLoan);$("useLoan").querySelector(".box").textContent=S.useLoan?"✓":"";
+  hob.value=S.hobong;$("career").value=S.career;
+  $("roleDamim").setAttribute("aria-pressed",S.role==="damim");$("roleJeondam").setAttribute("aria-pressed",S.role==="jeondam");
+  $("bojik").checked=S.bojik;$("spouse").checked=S.spouse;
+  $("kidsOut").textContent=S.kids;$("othersOut").textContent=S.others;
+  $("overtime").value=S.overtime==null?"":won(S.overtime);$("overtime").placeholder="0";$("research").value=S.research==null?"":won(S.research);
+  $("taxFam").value=S.taxFam??"";$("taxKids").value=S.taxKids||0;
+}
+
+/* ---------- 결과 ---------- */
+let chart;
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function update(){
+  save();
+  const R=compute(),P=R.P;
+  // placeholders for auto deductions
+  DED.forEach(([k])=>{const el=$("ded-"+k);if(el)el.placeholder="자동 "+won(P.auto[k])});
+  $("research").placeholder="자동 "+won(S.career>=5?60000:75000);
+  $("taxFam").placeholder="자동 "+(1+(S.spouse?1:0)+S.kids+S.others);
+  const manualN=DED.filter(([k])=>S.ded[k]!=null&&k!=="etc").length;
+  $("manualWarn").hidden=manualN===0;
+  $("manualWarnTxt").textContent=`세금·보험 ${manualN}개 항목에 명세서 값이 들어 있어 호봉·가족을 바꿔도 그대로입니다.`;
+
+  $("bongOut").textContent="본봉 "+won(P.items.bong)+"원";
+  $("roleOut").textContent=(P.items.damim+P.items.bojik)?"+"+won(P.items.damim+P.items.bojik)+"원":"수당 없음";
+  $("famOut").textContent="가족수당 "+won(P.fam.total)+"원";
+  const exSum=R.b.save+R.b.loan,nwSum=(R.a.save+R.a.loan)-exSum;
+  $("exOut").textContent="월 "+won(exSum)+"원";$("newOut").textContent="월 +"+won(nwSum)+"원";
+
+  // item outputs
+  document.querySelectorAll(".item").forEach(el=>{
+    const where=el.dataset.where,r=S[where].find(x=>x.id==el.dataset.id);if(!r)return;
+    el.querySelectorAll("[data-sub]").forEach(s=>{s.textContent=korUnit(r[s.dataset.sub])});
+    const out=el.querySelector("[data-out]");if(!out)return;
+    const s=rowSeries(r,where==="nw");
+    const ti=s.intr.reduce((a,b)=>a+b,0),mx=Math.max(...s.pay);
+    let h=`<span>첫 달 <b>${won(s.pay[0]||0)}원</b></span>`;
+    if(r.method==="principal"&&!s.fixed)h+=`<span>마지막 달 <b>${won(s.pay[s.pay.length-1])}원</b></span>`;
+    else if(mx>(s.pay[0]||0)+1)h+=`<span>거치 후 <b>${won(mx)}원</b></span>`;
+    if(!s.fixed)h+=`<span>총 이자 <b>${won(ti)}원</b></span>`;
+    if(s.balloon)h+=`<span>만기에 원금 <b>${won(s.balloon)}원</b> 한 번에</span>`;
+    out.innerHTML=h;
+  });
+
+  // headline
+  const gjB=R.b.save+R.b.loan,gjA=R.a.save+R.a.loan;
+  $("pctAfter").textContent=pct(gjA,P.pre).toFixed(1)+"%";
+  $("pctBefore").textContent=pct(gjB,P.pre).toFixed(1)+"%";
+  $("gjAfter").textContent=won(gjA);
+  $("pGross").textContent=pct(gjA,P.gross).toFixed(1)+"%";
+  $("pNet").textContent=won(P.pre-gjA)+"원";
+  const d=R.dsrA,tag=d<20?["여유","--ok"]:d<40?["주의","--warn"]:["은행권 한도(40%) 수준","--bad"];
+  $("pDsr").textContent=d.toFixed(1)+"%";$("dsrTag").textContent=tag[0];$("dsrPill").style.setProperty("--c",`var(${tag[1]})`);
+
+  // stub
+  const rows=[
+    ["세전 월급",P.gross,P.gross,"total-top"],
+    ["세금 (소득세·지방세)",P.taxes,P.taxes,"sub"],
+    ["연금·건강·요양보험",P.ins,P.ins,"sub"],
+    ["기타 공제",P.etc,P.etc,"sub"],
+    ["공제회 빼기 전 실수령",P.pre,P.pre,"mid"],
+    ["공제회 적금",R.b.save,R.a.save,"gj","--c-save"],
+    ["공제회 대출 상환",R.b.loan,R.a.loan,"gj","--c-new"],
+    ["최종 실수령액",P.pre-gjB,P.pre-gjA,"total"],
+  ];
+  $("stubBody").innerHTML=rows.map(([l,b,a,c,sw])=>{
+    const df=a-b;let dc="",dt="—";
+    if(Math.abs(df)>=1){dt=(df>0?"+":"−")+won(Math.abs(df));dc=(c==="total")?(df<0?"diff-up":"diff-dn"):(df>0?"diff-up":"diff-dn")}
+    return `<tr class="${c}" ${sw?`style="--sw:var(${sw})"`:""}><td>${l}</td><td>${won(b)}</td><td>${won(a)}</td><td class="${dc}">${dt}</td></tr>`}).join("");
+
+  // bars
+  const seg=[["세금","--c-tax",P.taxes,P.taxes],["연금·보험","--c-ins",P.ins,P.ins],["기타 공제","--c-etc",P.etc,P.etc],["공제회 적금","--c-save",R.b.save,R.a.save],["공제회 대출","--c-new",R.b.loan,R.a.loan],["남는 돈","--c-net",P.pre-gjB,P.pre-gjA]];
+  const bar=(i)=>seg.map(s=>`<i title="${s[0]} ${won(s[i])}원" style="flex-basis:${Math.max(0,pct(s[i],P.gross))}%;background:var(${s[1]})"></i>`).join("");
+  $("barBefore").innerHTML=bar(2);$("barAfter").innerHTML=bar(3);
+  $("legend").innerHTML=seg.map(s=>`<span style="--sw:var(${s[1]})">${s[0]} ${pct(s[3],P.gross).toFixed(1)}%</span>`).join("");
+
+  // loans table
+  const loans=[...R.ex.map(x=>({...x,w:"기존"})),...R.nw.map(x=>({...x,w:"신규"}))].filter(x=>x.s.kind==="loan");
+  $("loanCard").hidden=!loans.length;
+  $("loanBody").innerHTML=loans.map(({r,s,w})=>{
+    const n=s.pay.length,ti=s.intr.reduce((a,b)=>a+b,0);
+    return `<tr><td>${w} · ${r.name}</td><td>${won(s.pay[0]||0)}</td><td>${won(Math.max(...s.pay))}</td><td>${s.fixed?"—":won(ti)}</td><td>${Math.floor(n/12)?Math.floor(n/12)+"년 ":""}${n%12?n%12+"개월":""} 뒤</td></tr>`}).join("");
+
+  drawChart(R);
+}
+function drawChart(R){
+  if(!window.Chart){$("chartHint").textContent="그래프를 불러오지 못했습니다.";return}
+  const H=R.H,labels=[];for(let m=0;m<H;m++)labels.push(m%12===0?(m/12+1)+"년차":"");
+  const P=R.P;
+  $("chartHint").textContent=`앞으로 ${Math.ceil(H/12)}년 · 점선은 공제회 빼기 전 실수령액 ${won(P.pre)}원`;
+  const ink=css("--muted"),line=css("--line");
+  const ds=[
+    {label:"공제회 적금",data:R.series.save,backgroundColor:css("--c-save"),borderColor:css("--c-save"),fill:true,stack:"s"},
+    {label:"기존 대출 상환",data:R.series.old,backgroundColor:css("--c-old"),borderColor:css("--c-old"),fill:"-1",stack:"s"},
+    {label:"신규 대출 상환",data:R.series.nw,backgroundColor:css("--c-new"),borderColor:css("--c-new"),fill:"-1",stack:"s"},
+    {label:"공제회 전 실수령",data:Array(H).fill(P.pre),borderColor:css("--ink"),borderDash:[5,4],borderWidth:1.5,fill:false,stack:"x",pointRadius:0}
+  ];
+  ds.slice(0,3).forEach(d=>{d.pointRadius=0;d.borderWidth=1;d.stepped=true;d.backgroundColor=d.backgroundColor+"CC"});
+  const cfg={type:"line",data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    scales:{x:{grid:{display:false},ticks:{color:ink,autoSkip:false,maxRotation:0,callback:(v,i)=>{const l=labels[i];if(!l)return null;const step=H>240?5:H>120?2:1;return (i/12)%step===0?l:null}}},
+      y:{stacked:true,min:0,grid:{color:line},ticks:{color:ink,callback:v=>v>=1e4?(v/1e4).toLocaleString("ko-KR")+"만":v}}},
+    plugins:{legend:{labels:{color:ink,boxWidth:10,boxHeight:10,font:{family:"IBM Plex Sans KR"}}},
+      tooltip:{callbacks:{title:it=>{const m=it[0].dataIndex;return `${Math.floor(m/12)+1}년차 ${m%12+1}개월째`},label:c=>` ${c.dataset.label}: ${won(c.raw)}원`}}}}};
+  // y stacked only for first three: put the reference line on its own stack handled by 'stack' keys
+  if(chart){chart.data=cfg.data;chart.options=cfg.options;chart.update()}else chart=new Chart($("chart"),cfg);
+}
+
+/* ---------- 이벤트 ---------- */
+$("useSaving").onclick=()=>{S.useSaving=!S.useSaving;syncStatic();renderLists();update()};
+$("useLoan").onclick=()=>{S.useLoan=!S.useLoan;syncStatic();renderLists();update()};
+hob.onchange=()=>{S.hobong=+hob.value;if(!S.careerTouched){S.career=Math.max(0,S.hobong-9);$("career").value=S.career}update()};
+$("career").oninput=e=>{S.career=Math.max(0,+e.target.value||0);S.careerTouched=true;update()};
+$("roleDamim").onclick=()=>{S.role="damim";syncStatic();update()};
+$("roleJeondam").onclick=()=>{S.role="jeondam";syncStatic();update()};
+$("bojik").onchange=e=>{S.bojik=e.target.checked;update()};
+$("spouse").onchange=e=>{S.spouse=e.target.checked;update()};
+document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{const k=b.dataset.step;S[k]=Math.max(0,Math.min(10,S[k]+ +b.dataset.d));syncStatic();update()});
+$("overtime").oninput=e=>{S.overtime=parseMoney(e.target.value)||0;update()};
+$("research").oninput=e=>{S.research=parseMoney(e.target.value);update()};
+$("taxFam").oninput=e=>{const v=parseInt(e.target.value);S.taxFam=isNaN(v)?null:Math.max(1,v);update()};
+$("taxKids").oninput=e=>{S.taxKids=Math.max(0,parseInt(e.target.value)||0);update()};
+$("dedFields").addEventListener("input",e=>{const k=e.target.id.replace("ded-","");S.ded[k]=parseMoney(e.target.value);update()});
+$("clearDed").onclick=()=>{DED.forEach(([k])=>{if(k!=="etc")S.ded[k]=null});renderDedFields();update()};
+document.addEventListener("focusout",e=>{const t=e.target;if(t.matches&&t.matches('input[inputmode="numeric"]')){const v=parseMoney(t.value);t.value=v==null?"":won(v)}});
+function onItem(e){
+  const it=e.target.closest(".item");if(!it)return;
+  const r=S[it.dataset.where].find(x=>x.id==it.dataset.id);if(!r)return;
+  if(e.type==="click"&&e.target.matches("[data-del]")){S[it.dataset.where]=S[it.dataset.where].filter(x=>x!==r);renderLists();update();return}
+  if(e.type==="click")return;
+  const t=e.target,key=t.dataset.f||t.id.split("-").pop();
+  if(t.inputMode==="numeric")r[key]=parseMoney(t.value);
+  else if(t.type==="number")r[key]=t.value===""?0:+t.value;
+  else r[key]=t.value;
+  if(key==="product"&&e.type==="change"){
+    const pr=PRODUCTS[r.product];
+    if(pr.rate!=null){r.rate=pr.rate;r.method="equal";r.name=pr.label.replace("복지누리 · ","");
+      if(r.years!=null){const max=(r.grace||0)>0?9:10;if(r.years>max)r.years=max}}
+    renderLists();
+  } else if(key==="rate"){const pr=PRODUCTS[r.product];if(pr&&pr.rate!=null&&Math.abs(pr.rate-r.rate)>1e-9){r.product="custom"}}
+  update();
+}
+["exList","newList"].forEach(id=>{$(id).addEventListener("input",onItem);$(id).addEventListener("change",onItem);$(id).addEventListener("click",onItem)});
+document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
+  const [w,k]=b.dataset.add.split("-"),where=w==="ex"?"ex":"nw";
+  const r=k==="saving"?{id:uid++,kind:"saving",name:"장기저축급여",monthly:100000,months:0}
+    :where==="ex"?{id:uid++,kind:"loan",name:"일반대여",product:"general",balance:10000000,rate:4.95,months:36,method:"equal",fixed:null}
+    :{id:uid++,kind:"loan",name:"일반대여",product:"general",amount:20000000,rate:4.95,years:5,grace:0,method:"equal"};
+  S[where].push(r);renderLists();update();
+});
+const mq=matchMedia("(prefers-color-scheme: dark)");
+const redraw=()=>{if(chart){chart.destroy();chart=null}update()};
+mq.addEventListener&&mq.addEventListener("change",redraw);
+new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+syncStatic();renderDedFields();renderLists();update();
+</script>
+
+</body>
+</html>
