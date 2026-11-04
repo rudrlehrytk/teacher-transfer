@@ -1,6 +1,6 @@
 // 혁신학교 가산이 모든 관내·관외 페이지에서 계산되는지 확인
 const {chromium}=require('playwright');const fs=require('fs');
-const pages=['index','anyang','suwon','gunpo','goyang','yongin','hwaseong','bucheon','pyeongtaek','gwangmyeong','siheung','gwangjuhanam'];
+const pages=['index','anyang','suwon','gunpo','goyang','yongin','hwaseong','bucheon','pyeongtaek','gwangmyeong','siheung','gwangjuhanam','paju'];
 (async()=>{const b=await chromium.launch();let fail=0;
 for(const k of pages){const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-district.js','utf8')}));
