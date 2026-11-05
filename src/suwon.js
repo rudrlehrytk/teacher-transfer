@@ -77,9 +77,9 @@ gather = function () {
   const g = _gather();
   const num = (id) => +$(id).value || 0;
   const extraPct = [
-    { label: '체육교과전담', months: num('peMonths'), rate: 0.5 },
-    { label: '복합특수학급 특수교사', months: num('bokhapMonths'), rate: 0.5 },
-    { label: '방과후학교 업무담당', months: num('afterMonths'), rate: 0.3 },
+    { label: '체육교과전담', months: num('peMonths'), rate: 0.5, perYear: true },
+    { label: '복합특수학급 특수교사', months: num('bokhapMonths'), rate: 0.5, perYear: true },
+    { label: '방과후학교 업무담당', months: num('afterMonths'), rate: 0.3, perYear: true },
   ];
   if ($('noiseSchool').checked) extraPct.push({ label: '소음피해학교', months: noiseMonths(g), rate: 0.5 });
   return {

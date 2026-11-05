@@ -121,16 +121,26 @@ function calc(input) {
     ['sunhoe', '순회담당(특수·전문상담)', 0.3],
     ['tonghap', '통합학급', 0.3],
   ];
+  // 당해 경력 비율 가산은 1년(12개월)마다 따로 계산해 버린 뒤 더한다(2026-11-05 현장 확인). 예: 30% → 1년 3월, 2년 6월
+  const yearlyPct = (v, r) => {
+    const full = Math.floor(v / 12), rest = v % 12;
+    const perYear = Math.floor(12 * r + 1e-9), restM = Math.floor(rest * r + 1e-9);
+    const basis = (full ? `${full}년 × ${perYear}월` : '') + (full && rest ? ' + ' : '') + (rest ? `${rest}개월 × ${Math.round(r * 100)}%` : '');
+    return { months: full * perYear + restM, basis: `${basis} (1년마다 ${Math.round(r * 100)}%)` };
+  };
   for (const [k, label, r, ok] of pct) {
     const v = capM(input[k]);
     if (!v) continue;
     if (ok && !ok()) { out.warnings.push(`${label} 가산은 갑·을구역만 해당돼 빠졌습니다.`); continue; }
-    add(label, v * r, `${v}개월 × ${r * 100}%`);
+    const y = yearlyPct(v, r);
+    add(label, y.months, y.basis);
   }
   // 지원청별 추가 비율 가산(수원: 체육교과전담 50%, 소음피해학교 50% 등) — [{label, months, rate}]
   for (const e of input.extraPct || []) {
     const v = capM(e.months);
-    if (v) add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);
+    if (!v) continue;
+    if (e.perYear) { const y = yearlyPct(v, e.rate); add(e.label, y.months, y.basis); } // 당해 경력형
+    else add(e.label, v * e.rate, `${v}개월 × ${Math.round(e.rate * 100)}%`);              // 근무년수형(소음피해·늘봄·부부 등)
   }
   const wee = Math.min(Math.max(+input.weeMonths || 0, 0), 60);
   if (wee) add('특수교육순회교사·Wee센터', wee, `${wee}개월 × 100%`);

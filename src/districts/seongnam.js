@@ -21,9 +21,9 @@ const DCFG = {
   yearlyRates: { bujang: [6, 4], grade6: [6, 4], big43: [6, 0] },
   silseupPerYear: 6,
   extra: [
-    { id: 'sunhoeSN', type: 'pct', label: '학교소속 순회교육 담당(특수)', short: '순회교육 담당(특수)', hint: '1년당 4월, 6개월 미만 불인정', rate: 4 / 12 },
-    { id: 'tonghapSN', type: 'pct', label: '통합학급 담임', short: '통합학급 담임', hint: '1년당 4월, 6개월 미만 불인정', rate: 4 / 12 },
-    { id: 'afterSN', type: 'pct', label: '방과후 업무담당·학교폭력 책임교사', short: '방과후·학교폭력 책임교사', hint: '2019.3.1. 이후, 1년당 6월, 학교별 1인', rate: 6 / 12 },
+    { id: 'sunhoeSN', type: 'pct', label: '학교소속 순회교육 담당(특수)', short: '순회교육 담당(특수)', hint: '1년당 4월, 6개월 미만 불인정', rate: 4 / 12, perYear: true },
+    { id: 'tonghapSN', type: 'pct', label: '통합학급 담임', short: '통합학급 담임', hint: '1년당 4월, 6개월 미만 불인정', rate: 4 / 12, perYear: true },
+    { id: 'afterSN', type: 'pct', label: '방과후 업무담당·학교폭력 책임교사', short: '방과후·학교폭력 책임교사', hint: '2019.3.1. 이후, 1년당 6월, 학교별 1인', rate: 6 / 12, perYear: true },
     { id: 'hyeoksinSN', type: 'yearly', label: '혁신학교 근무', short: '혁신학교 근무', hint: '2017.3.1. 이후 지정 후 1년 이상, 1년에 6월 (2021.3.1. 이후 지정교 제외)', perYear: 6 },
   ],
   awards: AW4,

@@ -56,9 +56,9 @@ gather = function () {
   return {
     ...g, zone: curZone(), couple: false, awardLabels: ['장관↑', '교육감', '교육장'],
     extraPct: [
-      { label: '교과전담(체육 외)', months: num('subjMonths'), rate: 0.3 },
-      { label: '체육교과전담', months: num('peMonths'), rate: 0.5 },
-      { label: '방과후학교 업무담당', months: num('afterMonths'), rate: 0.3 },
+      { label: '교과전담(체육 외)', months: num('subjMonths'), rate: 0.3, perYear: true },
+      { label: '체육교과전담', months: num('peMonths'), rate: 0.5, perYear: true },
+      { label: '방과후학교 업무담당', months: num('afterMonths'), rate: 0.3, perYear: true },
     ],
   };
 };

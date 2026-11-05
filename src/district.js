@@ -88,7 +88,7 @@ gather = function () {
   for (const e of C.extra || []) {
     const v = num(e.id);
     if (!v) continue;
-    if (e.type === 'pct') extraPct.push({ label: e.short || e.label, months: v, rate: e.rate });
+    if (e.type === 'pct') extraPct.push({ label: e.short || e.label, months: v, rate: e.rate, perYear: !!e.perYear });
     else extraFixed.push({ label: e.short || e.label, months: v * e.perYear, basis: `${v}년 × ${e.perYear}월` });
   }
   let hyeoksinRule;

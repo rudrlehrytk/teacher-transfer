@@ -66,3 +66,14 @@ assert(!r.tukReset, 'tuk 경계 2021.3.2. 인정');
 // 체크 안 하면 적용 안 됨
 r = calc({ refDate: '2027-03-01', startDate: '2018-03-01', zone: 'gap', gapStart: '2018-03-01', bujangFull: 1 });
 assert(!r.tukReset && r.baseMonths === 60, 'tuk off');
+
+// 당해 경력 비율 가산은 1년마다 따로 계산 (2026-11-05 확인): 통합학급 30% → 1년 3월, 2년 6월, 3년 9월, 18개월 4월
+for (const [m, want] of [[12, 3], [24, 6], [36, 9], [18, 4], [6, 1]]) {
+  r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', tonghap: m });
+  const got = (r.items.find(i => i.label === '통합학급') || { months: 0 }).months;
+  assert(got === want, `통합학급 ${m}개월 → ${want}월 (got ${got})`);
+}
+// 근무년수형(소음피해 등)은 그대로 합쳐서 계산
+r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', extraPct: [{ label: '소음피해학교', months: 54, rate: 0.5 }, { label: '체육교과전담', months: 24, rate: 0.5, perYear: true }] });
+assert(r.items.find(i => i.label === '소음피해학교').months === 27, 'noise total 27');
+assert(r.items.find(i => i.label === '체육교과전담').months === 12, 'PE perYear 2y×6=12');
