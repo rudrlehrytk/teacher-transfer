@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const fs=require('fs');
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await p.route('**/supabase.min.js',r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync('test/mock-supabase.js','utf8')}));
 await p.route('https://fonts.**',r=>r.abort());
-await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(500);
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(500);await p.selectOption('#zone','gap');
 console.log('form visible', await p.isVisible('#applyForm'));
 console.log('btn disabled before', await p.isDisabled('#btnSubmit'), await p.textContent('#submitMsg'));
 await p.selectOption('#curRegion','안양(과천)');

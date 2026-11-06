@@ -104,6 +104,7 @@ function calc(input) {
 
   // 지역가산 (16조③ 지역가산표) — 구역 비율과 5학급 이하 30% 중 큰 값 1개
   // 지원청별로 학교마다 비율을 줄 수 있다(input.regionRate/regionLabel, input.smallRate/smallLabel)
+  if (input.regionRate === undefined && !(input.zone in REGION_RATE)) { out.errors.push('현임교 인사구역(갑·을·병)을 골라 주세요.'); return out; }
   const zr = input.regionRate !== undefined ? input.regionRate : (REGION_RATE[input.zone] ?? 0);
   const sr = input.smallSchool ? (input.smallRate ?? SMALL_RATE) : 0;
   const rate = Math.max(zr, sr);
@@ -113,6 +114,10 @@ function calc(input) {
     const pctTxt = Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
       ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
     add(label, base * rate, `현임교 ${base}개월 × ${pctTxt}`);
+  }
+  if (sr > 0 && zr >= sr) { // 학교 규모 가산과 구역 가산은 겹치지 않고 큰 쪽 하나만
+    const zn = input.regionLabel || { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone] || '구역';
+    out.warnings.push(`${input.smallLabel || '5학급 이하·분교장'} ${Math.round(sr * 100)}%는 ${zn} 지역가산(${Math.round(zr * 100)}%)과 겹쳐 받지 않고, 더 큰 ${zn} 가산 하나만 적용돼요.`);
   }
 
   // 업무가산 — 비율형
