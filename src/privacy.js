@@ -52,3 +52,28 @@
     fine.appendChild(p);
   }
 })();
+
+// 지원한 사람이 다시 들어오면 결과(순위표)를 바로 찾을 수 있게: 위쪽 바로가기 버튼 + #results 주소면 자동 이동
+(function resultsShortcut() {
+  const res = document.getElementById('results');
+  if (!res) return;
+  const bar = document.createElement('a');
+  bar.href = '#results';
+  bar.className = 'results-jump';
+  bar.hidden = true;
+  bar.textContent = '📊 내 모의지원 순위 보기';
+  document.body.appendChild(bar);
+  let jumped = false;
+  const sync = () => {
+    const ready = !res.hidden;
+    bar.hidden = !ready;
+    if (ready && !jumped && location.hash === '#results') { jumped = true; setTimeout(() => res.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300); }
+  };
+  new MutationObserver(sync).observe(res, { attributes: true, attributeFilter: ['hidden'] });
+  bar.addEventListener('click', (e) => { e.preventDefault(); history.replaceState(null, '', '#results'); res.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  // 순위표가 화면에 보이는 동안은 버튼을 숨긴다
+  if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { if (!res.hidden) bar.classList.toggle('away', e.isIntersecting); }).observe(res);
+  const msg = document.getElementById('loginMsg');
+  if (msg && !/다시 로그인/.test(msg.textContent)) msg.textContent += ' 이미 지원했다면 같은 이메일로 다시 로그인하면 내 순위표를 언제든 다시 볼 수 있어요.';
+  sync();
+})();
