@@ -77,3 +77,7 @@ for (const [m, want] of [[12, 3], [24, 6], [36, 9], [18, 4], [6, 1]]) {
 r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'gap', extraPct: [{ label: '소음피해학교', months: 54, rate: 0.5 }, { label: '체육교과전담', months: 24, rate: 0.5, perYear: true }] });
 assert(r.items.find(i => i.label === '소음피해학교').months === 27, 'noise total 27');
 assert(r.items.find(i => i.label === '체육교과전담').months === 12, 'PE perYear 2y×6=12');
+
+// 구역 가산 + 5학급 이하 가산은 둘 다 더함 (2026-11-09 확인)
+r = calc({ refDate: '2027-03-01', startDate: '2022-03-01', zone: 'eul', smallSchool: true });
+assert(r.bonusMonths === 30 + 18, `을 50% + 5학급 30% = 48 (got ${r.bonusMonths})`);

@@ -509,18 +509,16 @@ function calc(input) {
   if (input.regionRate === undefined && !(input.zone in REGION_RATE)) { out.errors.push('현임교 인사구역(갑·을·병)을 골라 주세요.'); return out; }
   const zr = input.regionRate !== undefined ? input.regionRate : (REGION_RATE[input.zone] ?? 0);
   const sr = input.smallSchool ? (input.smallRate ?? SMALL_RATE) : 0;
-  const rate = Math.max(zr, sr);
-  if (rate > 0) {
+  // 구역 가산과 학교 규모(5학급 이하 등) 가산은 둘 다 해당하면 둘 다 더한다
+  // (원문에 중복 제한 규정이 없음 — 2026-11-09 사용자 확인. 상한이 있는 지원청은 bonusCapPct로 처리)
+  const pctTxt = (rate) => Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
+    ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
+  if (zr > 0) {
     const name = { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone];
-    const label = sr > zr ? `지역가산(${input.smallLabel || '5학급 이하·분교장'})` : `지역가산(${input.regionLabel || name})`;
-    const pctTxt = Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
-      ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
-    add(label, base * rate, `현임교 ${base}개월 × ${pctTxt}`);
+    add(`지역가산(${input.regionLabel || name})`, base * zr, `현임교 ${base}개월 × ${pctTxt(zr)}`);
   }
-  if (sr > 0 && zr >= sr) { // 학교 규모 가산과 구역 가산은 겹치지 않고 큰 쪽 하나만
-    const zn = input.regionLabel || { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone] || '구역';
-    out.warnings.push(`${input.smallLabel || '5학급 이하·분교장'} ${Math.round(sr * 100)}%는 ${zn} 지역가산(${Math.round(zr * 100)}%)과 겹쳐 받지 않고, 더 큰 ${zn} 가산 하나만 적용돼요.`);
-  }
+  if (sr > 0) add(`지역가산(${input.smallLabel || '5학급 이하·분교장'})`, base * sr, `현임교 ${base}개월 × ${pctTxt(sr)}`);
+  if (zr > 0 && sr > 0) out.warnings.push('구역 지역가산과 학교 규모 가산을 함께 더했어요(원문에 중복 제한 규정이 없어요). 실제 처리는 학교에 한 번 확인해 주세요.');
 
   // 업무가산 — 비율형
   const pct = [
