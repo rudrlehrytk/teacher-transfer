@@ -1132,8 +1132,13 @@ refreshAuth();
   bar.addEventListener('click', (e) => { e.preventDefault(); history.replaceState(null, '', '#results'); res.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   // 순위표가 화면에 보이는 동안은 버튼을 숨긴다
   if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { if (!res.hidden) bar.classList.toggle('away', e.isIntersecting); }).observe(res);
-  const msg = document.getElementById('loginMsg');
-  if (msg && !/다시 로그인/.test(msg.textContent)) msg.textContent += ' 이미 지원했다면 같은 이메일로 다시 로그인하면 내 순위표를 언제든 다시 볼 수 있어요.';
+  // 안내는 모의지원 소개 문단(맨 위)에 둔다 — 사용자 제안(2026-11-09)
+  const intro = document.querySelector('#apply .panel-head p');
+  if (intro && !/다시 로그인/.test(intro.textContent)) {
+    const em = document.createElement('strong');
+    em.textContent = ' 이미 지원했다면 같은 이메일로 다시 로그인하면 내 순위표를 언제든 다시 볼 수 있어요.';
+    intro.appendChild(em);
+  }
   sync();
 })();
 
