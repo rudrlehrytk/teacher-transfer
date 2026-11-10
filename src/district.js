@@ -41,6 +41,11 @@ let myApp = null;
   for (const [id, text] of Object.entries(C.labels || {})) { const l = rowOf(id).querySelector('label, .lab'); if (l) l.firstChild.textContent = text; }
   if (C.exclusionHint) rowOf('exList').querySelector('.hint').textContent = C.exclusionHint;
 
+  // 6월~1년 미만 가산이 없는 항목(광주하남 부장, 성남 43학급 등)은 그 칸을 숨긴다
+  for (const [k, [, half]] of Object.entries(C.yearlyRates || {})) {
+    const el = $(k + 'Half');
+    if (el && !half) { el.value = 0; el.hidden = true; if (el.nextElementSibling) el.nextElementSibling.hidden = true; }
+  }
   // 혁신학교 선택지
   if (C.hyeoksin === null) hideRow('hyeoksin');
   else if (C.hyeoksin) {
