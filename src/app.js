@@ -120,7 +120,7 @@ async function loadRankings() {
     const ahead = first.filter(r => (r.has_priority > me.has_priority) || (r.has_priority === me.has_priority && r.total_months > me.total_months)).length;
     const ties = first.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
     const later = all.filter(r => r.wish_order > 1 && !r.is_me).length;
-    const top = first.slice(0, 12).map(r => `<li class="${r.is_me ? 'me' : ''}${r.has_priority ? ' pri' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_gap_expired ? '<em class="g">만기</em>' : ''}</li>`).join('');
+    const top = first.map(r => `<li class="${r.is_me ? 'me' : ''}${r.has_priority ? ' pri' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_gap_expired ? '<em class="g">만기</em>' : ''}</li>`).join('');
     const label = i === 0 ? '1희망' : `${i + 1}희망`;
     return `<article class="card">
       <header><span class="tagw">${label}</span><h4>${esc(w)}</h4></header>
@@ -131,7 +131,6 @@ async function loadRankings() {
         ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.')
         : (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 미발령(잔류)이에요.')}</p>
       <ol class="ladder">${top}</ol>
-      ${first.length > 12 ? `<p class="line muted">위 12명까지 표시</p>` : ''}
     </article>`;
   }).join('');
 }

@@ -201,7 +201,7 @@ async function loadRankings() {
     const ties = group.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
     const total = exp1.length + gen1.length;
     const li = (r) => `<li class="${r.is_me ? 'me' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_expired ? '<em class="g">만기</em>' : ''}</li>`;
-    const ladder = [...exp1, ...gen1].slice(0, 14).map(li).join('');
+    const ladder = [...exp1, ...gen1].map(li).join('');
     const notes = [];
     if (!a.is_expired && exp1.length) notes.push(`이 학교를 1희망으로 쓴 만기전보자 ${exp1.length}명이 일반전보자보다 먼저 배정돼요.`);
     if (expLater) notes.push(`2~6희망으로 쓴 만기전보자 ${expLater}명도 앞 희망에서 밀리면 이 학교에 먼저 배정될 수 있어요.`);
@@ -215,7 +215,6 @@ async function loadRankings() {
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
       ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
       <ol class="ladder">${ladder}</ol>
-      ${total > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
     </article>`;
   }).join('');
 }

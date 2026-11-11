@@ -154,6 +154,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 .results-jump { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 50; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 12px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: opacity .2s, transform .2s; }
 .results-jump.away { opacity: 0; transform: translateY(12px); pointer-events: none; }
 @media (prefers-color-scheme: dark) { .results-jump { color: #10201b; } }
+.ladder-more { margin-top: 6px; font-size: 0.85rem; }
+.ladder li[hidden] { display: none; }
 
 
 .pages { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1011,8 +1013,7 @@ async function loadRankings() {
       <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${pool.length}명 (1희망 기준${C.order === 'priorityFirst' ? ', 우대 → 만기 → 일반' : EXP_FIRST ? ', 만기자 먼저' : ', 통합 명부'})</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
       ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
-      <ol class="ladder">${pool.slice(0, 14).map(li).join('')}</ol>
-      ${pool.length > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
+      <ol class="ladder">${pool.map(li).join('')}</ol>
     </article>`;
   }).join('');
 }
@@ -1151,6 +1152,33 @@ refreshAuth();
     intro.appendChild(em);
   }
   sync();
+})();
+
+// 순위 목록: 전체를 보여 주되 길면 위 12명만 펼쳐 두고 "전체 보기"로 펼친다. 내가 12위 밖이면 처음부터 다 펼친다.
+(function ladderToggle() {
+  const cards = document.getElementById('regionCards');
+  if (!cards) return;
+  const SHOW = 12;
+  const apply = () => {
+    for (const ol of cards.querySelectorAll('ol.ladder:not([data-t])')) {
+      ol.dataset.t = '1';
+      const items = [...ol.children];
+      if (items.length <= SHOW) continue;
+      const meIdx = items.findIndex(li => li.classList.contains('me'));
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn-ghost ladder-more';
+      const set = (open) => {
+        items.forEach((li, i) => { li.hidden = !open && i >= SHOW; });
+        btn.textContent = open ? '접기' : `전체 ${items.length}명 보기`;
+        btn.dataset.open = open ? '1' : '';
+      };
+      btn.addEventListener('click', () => set(!btn.dataset.open));
+      ol.after(btn);
+      set(meIdx >= SHOW);
+    }
+  };
+  new MutationObserver(apply).observe(cards, { childList: true, subtree: true });
+  apply();
 })();
 
 </script>

@@ -154,6 +154,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 .results-jump { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 50; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95rem; padding: 12px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: opacity .2s, transform .2s; }
 .results-jump.away { opacity: 0; transform: translateY(12px); pointer-events: none; }
 @media (prefers-color-scheme: dark) { .results-jump { color: #10201b; } }
+.ladder-more { margin-top: 6px; font-size: 0.85rem; }
+.ladder li[hidden] { display: none; }
 
 
 .pages { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -818,7 +820,7 @@ async function loadRankings() {
     const ahead = first.filter(r => (r.has_priority > me.has_priority) || (r.has_priority === me.has_priority && r.total_months > me.total_months)).length;
     const ties = first.filter(r => !r.is_me && r.has_priority === me.has_priority && r.total_months === me.total_months).length;
     const later = all.filter(r => r.wish_order > 1 && !r.is_me).length;
-    const top = first.slice(0, 12).map(r => `<li class="${r.is_me ? 'me' : ''}${r.has_priority ? ' pri' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_gap_expired ? '<em class="g">만기</em>' : ''}</li>`).join('');
+    const top = first.map(r => `<li class="${r.is_me ? 'me' : ''}${r.has_priority ? ' pri' : ''}"><span>${fmtYM(r.total_months)}</span>${r.is_me ? '<em>나</em>' : ''}${r.has_priority ? '<em class="p">우대</em>' : ''}${r.is_gap_expired ? '<em class="g">만기</em>' : ''}</li>`).join('');
     const label = i === 0 ? '1희망' : `${i + 1}희망`;
     return `<article class="card">
       <header><span class="tagw">${label}</span><h4>${esc(w)}</h4></header>
@@ -829,7 +831,6 @@ async function loadRankings() {
         ? (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.')
         : (i < a.wishes.length - 1 ? '여기서 밀리면 다음 희망지로 넘어가요.' : '마지막 희망지예요. 여기서도 밀리면 미발령(잔류)이에요.')}</p>
       <ol class="ladder">${top}</ol>
-      ${first.length > 12 ? `<p class="line muted">위 12명까지 표시</p>` : ''}
     </article>`;
   }).join('');
 }
@@ -962,6 +963,33 @@ refreshAuth();
     intro.appendChild(em);
   }
   sync();
+})();
+
+// 순위 목록: 전체를 보여 주되 길면 위 12명만 펼쳐 두고 "전체 보기"로 펼친다. 내가 12위 밖이면 처음부터 다 펼친다.
+(function ladderToggle() {
+  const cards = document.getElementById('regionCards');
+  if (!cards) return;
+  const SHOW = 12;
+  const apply = () => {
+    for (const ol of cards.querySelectorAll('ol.ladder:not([data-t])')) {
+      ol.dataset.t = '1';
+      const items = [...ol.children];
+      if (items.length <= SHOW) continue;
+      const meIdx = items.findIndex(li => li.classList.contains('me'));
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn-ghost ladder-more';
+      const set = (open) => {
+        items.forEach((li, i) => { li.hidden = !open && i >= SHOW; });
+        btn.textContent = open ? '접기' : `전체 ${items.length}명 보기`;
+        btn.dataset.open = open ? '1' : '';
+      };
+      btn.addEventListener('click', () => set(!btn.dataset.open));
+      ol.after(btn);
+      set(meIdx >= SHOW);
+    }
+  };
+  new MutationObserver(apply).observe(cards, { childList: true, subtree: true });
+  apply();
 })();
 
 </script>

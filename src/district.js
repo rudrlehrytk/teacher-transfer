@@ -262,8 +262,7 @@ async function loadRankings() {
       <div class="rank"><span class="big">${ahead + 1}</span><span class="of">/ ${pool.length}명 (1희망 기준${C.order === 'priorityFirst' ? ', 우대 → 만기 → 일반' : EXP_FIRST ? ', 만기자 먼저' : ', 통합 명부'})</span></div>
       <p class="line">내 앞에 ${ahead}명${ties ? `, 동점 ${ties}명` : ''}</p>
       ${notes.map(n => `<p class="line muted">${n}</p>`).join('')}
-      <ol class="ladder">${pool.slice(0, 14).map(li).join('')}</ol>
-      ${pool.length > 14 ? '<p class="line muted">위 14명까지 표시</p>' : ''}
+      <ol class="ladder">${pool.map(li).join('')}</ol>
     </article>`;
   }).join('');
 }

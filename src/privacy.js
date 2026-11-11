@@ -82,3 +82,30 @@
   }
   sync();
 })();
+
+// 순위 목록: 전체를 보여 주되 길면 위 12명만 펼쳐 두고 "전체 보기"로 펼친다. 내가 12위 밖이면 처음부터 다 펼친다.
+(function ladderToggle() {
+  const cards = document.getElementById('regionCards');
+  if (!cards) return;
+  const SHOW = 12;
+  const apply = () => {
+    for (const ol of cards.querySelectorAll('ol.ladder:not([data-t])')) {
+      ol.dataset.t = '1';
+      const items = [...ol.children];
+      if (items.length <= SHOW) continue;
+      const meIdx = items.findIndex(li => li.classList.contains('me'));
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn-ghost ladder-more';
+      const set = (open) => {
+        items.forEach((li, i) => { li.hidden = !open && i >= SHOW; });
+        btn.textContent = open ? '접기' : `전체 ${items.length}명 보기`;
+        btn.dataset.open = open ? '1' : '';
+      };
+      btn.addEventListener('click', () => set(!btn.dataset.open));
+      ol.after(btn);
+      set(meIdx >= SHOW);
+    }
+  };
+  new MutationObserver(apply).observe(cards, { childList: true, subtree: true });
+  apply();
+})();
