@@ -156,6 +156,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 @media (prefers-color-scheme: dark) { .results-jump { color: #10201b; } }
 .ladder-more { margin-top: 6px; font-size: 0.85rem; }
 .ladder li[hidden] { display: none; }
+.elsewhere { background: var(--soft, #e6f0ec); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: 0.92rem; line-height: 1.6; }
+.elsewhere a.btn-ghost { display: inline-block; margin: 8px 6px 0 0; text-decoration: none; }
 
 
 .pages { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1000,6 +1002,48 @@ refreshAuth();
   };
   new MutationObserver(apply).observe(cards, { childList: true, subtree: true });
   apply();
+})();
+
+// 다시 로그인했는데 지원 폼만 보일 때: 다른 페이지(관외↔관내)에 지원 기록이 있으면 그 페이지로 안내, 없으면 다른 이메일 가능성 안내
+(function elsewhereHint() {
+  const form = document.getElementById('applyForm');
+  if (!form || typeof sb === 'undefined') return;
+  const navLinks = [...document.querySelectorAll('nav.pages a')];
+  const cur = navLinks.find(a => a.getAttribute('aria-current') === 'page');
+  const curHref = cur ? cur.getAttribute('href') : '';
+  const labelOf = (href) => (navLinks.find(a => a.getAttribute('href') === href) || {}).textContent || href;
+  const box = document.createElement('div');
+  box.className = 'elsewhere';
+  box.hidden = true;
+  form.before(box);
+  let busy = false;
+  const check = async () => {
+    const email = (document.getElementById('whoEmail') || {}).textContent || '';
+    if (form.hidden || !email) { box.hidden = true; return; }
+    if (busy) return; busy = true;
+    try {
+      const [o, i] = await Promise.all([
+        sb.from('applications').select('cycle').limit(1),
+        sb.from('gwannae_applications').select('district'),
+      ]);
+      const hrefs = [];
+      if (o.data && o.data.length) hrefs.push('./');
+      for (const r of i.data || []) hrefs.push(`./${r.district}.html`);
+      const others = hrefs.filter(h => h !== curHref);
+      const esc = (s) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      if (others.length) {
+        box.innerHTML = `<strong>이 페이지에는 지원 기록이 없어요.</strong> 이 이메일(${esc(email)})로 지원한 곳은 아래예요. 눌러서 순위표를 확인하세요.<br>` +
+          others.map(h => `<a class="btn-ghost" href="${h}#results">📊 ${esc(labelOf(h))} 순위 보기</a>`).join(' ');
+      } else {
+        box.innerHTML = `<strong>이 이메일(${esc(email)})로는 아직 지원 기록이 없어요.</strong> 예전에 지원했다면 <b>다른 이메일</b>로 지원했을 수 있어요. 로그아웃하고 그 이메일로 다시 로그인해 보세요.`;
+      }
+      box.hidden = false;
+    } catch (e) { box.hidden = true; }
+    busy = false;
+  };
+  new MutationObserver(check).observe(form, { attributes: true, attributeFilter: ['hidden'] });
+  const who = document.getElementById('whoEmail');
+  if (who) new MutationObserver(check).observe(who, { childList: true, characterData: true, subtree: true });
 })();
 
 </script>

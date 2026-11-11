@@ -50,3 +50,5 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 @media (prefers-color-scheme: dark) { .results-jump { color: #10201b; } }
 .ladder-more { margin-top: 6px; font-size: 0.85rem; }
 .ladder li[hidden] { display: none; }
+.elsewhere { background: var(--soft, #e6f0ec); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: 0.92rem; line-height: 1.6; }
+.elsewhere a.btn-ghost { display: inline-block; margin: 8px 6px 0 0; text-decoration: none; }
