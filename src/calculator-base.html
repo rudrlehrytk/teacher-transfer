@@ -117,6 +117,8 @@ tr.sum td { font-weight: 600; background: var(--accent-soft); }
             <div class="ctl"><input type="date" id="refDate" value="2027-03-01"></div></div>
           <div class="row"><label for="startDate">현임교 발령일</label>
             <div class="ctl"><input type="date" id="startDate" value="2022-03-01"></div></div>
+          <div class="row"><label for="prevStart">전임교 발령일 <span class="hint">폐교·학급감축·통합·정원감축·동일교 부부 등 <b>본인 의사와 무관한 전보</b>로 현임교에 온 경우만 넣으세요. 전임교 근무년수를 합산해요(합산해도 5년 상한). 해당 없으면 비워 두세요.</span></label>
+            <div class="ctl"><input type="date" id="prevStart"></div></div>
           <div class="row"><span class="lab">휴직·연수파견·기관파견 기간<span class="hint">현임교 근무년수에서 빠져요. 휴가는 포함.</span></span>
             <div class="ctl" style="display:grid;gap:6px">
               <div class="ex-list" id="exList"></div>
@@ -427,7 +429,7 @@ function gather() {
     end: r.querySelector('input[aria-label="제외 종료일"]').value,
   }));
   return {
-    refDate: $('refDate').value, startDate: $('startDate').value, exclusions,
+    refDate: $('refDate').value, startDate: $('startDate').value, prevStart: $('prevStart').value, exclusions,
     zone: $('zone').value, smallSchool: $('smallSchool').checked,
     gapStart: $('gapStart').value, gapExempt: $('gapExempt').checked, wasTuk: $('wasTuk').checked,
     wishRegion: $('wishRegion').value,
@@ -481,7 +483,7 @@ $('btnClear').addEventListener('click', () => {
   $('f').querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
   $('f').querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
   $('wasTuk').checked = !!window.TUK_DEFAULT;
-  $('startDate').value = ''; $('gapStart').value = ''; $('zone').value = 'gap';
+  $('startDate').value = ''; $('prevStart').value = ''; $('gapStart').value = ''; $('zone').value = 'gap';
   $('hyeoksin').value = 'none'; $('wishRegion').value = ''; $('spouseRegion').value = '';
   $('exList').innerHTML = '';
   $('sampleNote').hidden = true;

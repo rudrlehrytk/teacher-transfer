@@ -71,10 +71,18 @@ function calc(input) {
   if (!ref || !start) { out.errors.push('전보일과 현임교 발령일을 입력하세요.'); return out; }
   if (cmp(start, ref) >= 0) { out.errors.push('현임교 발령일이 전보일보다 늦습니다.'); return out; }
 
-  const md = serviceMD(start, ref, input.exclusions);
+  const mdCur = serviceMD(start, ref, input.exclusions);
+  // 본인 의사와 무관한 전보(폐교·휴교·학급감축·통합·정원감축·동일교 부부)로 온 경우 전임교+현임교 근무년수 합산 (도 기준 13조①, 각 지원청 원칙)
+  const prev = parseDate(input.prevStart);
+  let md = mdCur;
+  if (prev && cmp(prev, start) < 0) {
+    md = serviceMD(prev, ref, input.exclusions);
+    out.merged = true;
+    out.warnings.push(`전임교 발령일부터 합산했어요(본인 의사와 무관한 전보만 해당). 실제 현임교 근무는 ${fmtYM(roundMonths(mdCur))}이에요. 지역가산은 현임교 구역 비율로 합산 기간 전체에 계산했으니, 전임교 구역 비율이 달랐다면 실제 점수와 차이가 날 수 있어요.`);
+  } else if (prev) out.warnings.push('전임교 발령일이 현임교 발령일보다 늦어서 합산하지 않았어요.');
   out.serviceMD = md;
   out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가) — 실제 근무 기준
-  out.sameSchoolExpired = md.months >= 60;
+  out.sameSchoolExpired = mdCur.months >= 60;
   // 특구역→갑구역 전환(2026.3.1.): 2026.2.28.까지 특구역 5년 이상(특만기 해당)이면
   // 2026.2.28.까지의 현임교 근무년수와 가산은 인정하지 않는다 (도 기준 2024 부칙 제5조)
   let md2 = md;
