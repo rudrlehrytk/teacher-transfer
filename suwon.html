@@ -203,7 +203,7 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             <div class="ctl"><input type="date" id="refDate" value="2027-03-01"></div></div>
           <div class="row"><label for="startDate">현임교 발령일</label>
             <div class="ctl"><input type="date" id="startDate" value="2022-03-01"></div></div>
-          <div class="row"><label for="prevStart">전임교 발령일 <span class="hint">폐교·학급감축·통합·정원감축·동일교 부부 등 <b>본인 의사와 무관한 전보</b>로 현임교에 온 경우만 넣으세요. 전임교 근무년수를 합산해요(합산해도 5년 상한). 해당 없으면 비워 두세요.</span></label>
+          <div class="row"><label for="prevStart">합산 시작일(전임교 발령일) <span class="hint">폐교·학급감축·통합·정원감축·동일교 부부 등 <b>본인 의사와 무관한 전보</b>로 현임교에 온 경우만 넣으세요. 이 날부터 현임교까지 근무년수를 합산해요(합산해도 5년 상한). <b>전임교가 2곳 이상</b>이고 그 사이 전보도 모두 본인 의사와 무관했다면, <b>합산되는 학교 중 가장 앞 학교의 발령일</b>을 넣으세요. 해당 없으면 비워 두세요.</span></label>
             <div class="ctl"><input type="date" id="prevStart"></div></div>
           <div class="row"><span class="lab">휴직·연수파견·기관파견 기간<span class="hint">현임교 근무년수에서 빠져요. 휴가는 포함.</span></span>
             <div class="ctl" style="display:grid;gap:6px">
@@ -257,8 +257,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             <div class="ctl"><input type="number" min="0" max="60" id="bokSik" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="sunhoe">순회담당(특수·전문상담)<span class="hint">학교 소속, 30%, 1년마다 계산(1년 3월, 2년 6월). 개월로 넣어요</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="sunhoe" value="0"><span class="unit">개월</span></div></div>
-          <div class="row"><label for="tonghap">통합학급 교사<span class="hint">30%, 1년마다 계산(1년 3월, 2년 6월). 개월로 넣어요</span></label>
-            <div class="ctl"><input type="number" min="0" max="60" id="tonghap" value="0"><span class="unit">개월</span></div></div>
+          <div class="row"><label for="tonghap">통합학급 교사<span class="hint">통합학급을 맡은 <b>햇수(년)</b>를 넣으세요. 1년당 3개월로 환산해요(1년 → 3개월, 2년 → 6개월).</span></label>
+            <div class="ctl"><input type="number" min="0" max="5" step="1" id="tonghap" value="0"><span class="unit">년</span></div></div>
           <div class="row"><label for="weeMonths">특수교육순회교사·Wee센터<span class="hint">본청·교육지원청·직속기관 소속, 현임기관 근무 100%</span></label>
             <div class="ctl"><input type="number" min="0" max="60" id="weeMonths" value="0"><span class="unit">개월</span></div></div>
           <div class="row"><label for="hyeoksin">혁신학교<span class="hint">2021.3.1. 이후 지정(재지정)교는 제외</span></label>
@@ -441,7 +441,7 @@ function calc(input) {
   if (prev && cmp(prev, start) < 0) {
     md = serviceMD(prev, ref, input.exclusions);
     out.merged = true;
-    out.warnings.push(`전임교 발령일부터 합산했어요(본인 의사와 무관한 전보만 해당). 실제 현임교 근무는 ${fmtYM(roundMonths(mdCur))}이에요. 지역가산은 현임교 구역 비율로 합산 기간 전체에 계산했으니, 전임교 구역 비율이 달랐다면 실제 점수와 차이가 날 수 있어요.`);
+    out.warnings.push(`합산 시작일(전임교 발령일)부터 합산했어요(본인 의사와 무관한 전보만 해당). 실제 현임교 근무는 ${fmtYM(roundMonths(mdCur))}이에요. 지역가산은 현임교 구역 비율로 합산 기간 전체에 계산했으니, 전임교 구역 비율이 달랐다면(또는 중간에 휴직 등 빠지는 기간이 있으면 '제외 기간'에 넣어 주세요) 실제 점수와 차이가 날 수 있어요.`);
   } else if (prev) out.warnings.push('전임교 발령일이 현임교 발령일보다 늦어서 합산하지 않았어요.');
   out.serviceMD = md;
   out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가) — 실제 근무 기준
@@ -654,7 +654,7 @@ function gather() {
     bujangFull: num('bujangFull'), bujangHalf: num('bujangHalf'),
     grade6Full: num('grade6Full'), grade6Half: num('grade6Half'),
     big43Full: num('big43Full'), big43Half: num('big43Half'),
-    bokSik: num('bokSik'), sunhoe: num('sunhoe'), tonghap: num('tonghap'), weeMonths: num('weeMonths'),
+    bokSik: num('bokSik'), sunhoe: num('sunhoe'), tonghap: Math.floor(num('tonghap')) * 12, weeMonths: num('weeMonths'),
     hyeoksin: $('hyeoksin').value, hyeoksinMonths: num('hyeoksinMonths'),
     silseup: num('silseup'), damunhwa: num('damunhwa'), neulbomMonths: num('neulbomMonths'),
     couple: $('couple').checked, spouseRegion: $('spouseRegion').value,

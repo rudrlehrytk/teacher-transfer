@@ -78,7 +78,7 @@ function calc(input) {
   if (prev && cmp(prev, start) < 0) {
     md = serviceMD(prev, ref, input.exclusions);
     out.merged = true;
-    out.warnings.push(`전임교 발령일부터 합산했어요(본인 의사와 무관한 전보만 해당). 실제 현임교 근무는 ${fmtYM(roundMonths(mdCur))}이에요. 지역가산은 현임교 구역 비율로 합산 기간 전체에 계산했으니, 전임교 구역 비율이 달랐다면 실제 점수와 차이가 날 수 있어요.`);
+    out.warnings.push(`합산 시작일(전임교 발령일)부터 합산했어요(본인 의사와 무관한 전보만 해당). 실제 현임교 근무는 ${fmtYM(roundMonths(mdCur))}이에요. 지역가산은 현임교 구역 비율로 합산 기간 전체에 계산했으니, 전임교 구역 비율이 달랐다면(또는 중간에 휴직 등 빠지는 기간이 있으면 '제외 기간'에 넣어 주세요) 실제 점수와 차이가 날 수 있어요.`);
   } else if (prev) out.warnings.push('전임교 발령일이 현임교 발령일보다 늦어서 합산하지 않았어요.');
   out.serviceMD = md;
   out.eligible = md.months >= 24; // 2년 이상(하루라도 부족 시 내신 불가) — 실제 근무 기준
