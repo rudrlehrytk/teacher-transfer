@@ -32,7 +32,7 @@ function renderWishInputs() {
     s.setAttribute('aria-label', `${i + 1}희망`);
     regionOptions(s, `${i + 1}희망${i ? ' (선택)' : ''}`);
     s.value = prev[i] || '';
-    s.addEventListener('change', renderApplySummary);
+    s.addEventListener('change', () => { if (i === 0) wish0Touched = true; renderApplySummary(); });
     box.appendChild(s);
   }
   $('wishHint').textContent = isGapKind() ? '갑구역 만기내신은 6희망까지 쓸 수 있어요. 6희망까지 밀리면 생활근거지를 고려해 임의 배정될 수 있어요.' : '일반내신은 3희망까지 쓸 수 있고, 3희망까지 밀리면 미발령(잔류)이에요.';
@@ -147,6 +147,12 @@ $('btnLogin').addEventListener('click', async () => {
 });
 $('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); await refreshAuth(); });
 $('btnRefresh').addEventListener('click', loadRankings);
+// 계산기의 '1희망 시·군'을 바꾸면 지원 폼 1희망도 따라간다(지원 폼에서 직접 고른 뒤에는 건드리지 않음)
+let wish0Touched = false;
+$('wishRegion').addEventListener('change', () => {
+  const w0 = $('wish0');
+  if (w0 && !wish0Touched) { w0.value = $('wishRegion').value; renderApplySummary(); }
+});
 $('curRegion').addEventListener('change', renderApplySummary);
 $('confirmOnce').addEventListener('change', renderApplySummary);
 for (const id of ['kindNormal', 'kindGap']) $(id).addEventListener('change', () => { kindTouched = true; renderWishInputs(); });
