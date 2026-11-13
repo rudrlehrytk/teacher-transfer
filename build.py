@@ -75,6 +75,7 @@ def page(out, title, h1, desc, part, js, current, pre=(), part_vars=None):
 {ui}
 {(root / js).read_text()}
 {(root / 'src/privacy.js').read_text()}
+{(root / 'src/feed.js').read_text()}
 </script>
 </body>
 </html>
