@@ -151,3 +151,13 @@
   const who = document.getElementById('whoEmail');
   if (who) new MutationObserver(check).observe(who, { childList: true, characterData: true, subtree: true });
 })();
+
+// 로그인 전: "지원하기 버튼이 어디 있나요" 문의가 반복돼서, 지원까지의 순서를 로그인 칸 위에 보여 준다
+(function loginSteps() {
+  const out = document.getElementById('signedOut');
+  if (!out) return;
+  const box = document.createElement('ol');
+  box.className = 'login-steps';
+  box.innerHTML = '<li>이메일을 쓰고 <b>동의에 체크</b></li><li><b>로그인 링크 받기</b> 누르기</li><li>메일함(스팸함 포함)에서 <b>링크 누르기</b></li><li>이 페이지로 돌아오면 <b>"이 점수로 지원하기"</b> 버튼이 나와요</li>';
+  out.prepend(box);
+})();

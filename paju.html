@@ -195,6 +195,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
   .feed { width: 360px; transform: none; box-shadow: none; }
   .feed-close, .feed-fab { display: none; }
 }
+.login-steps { margin: 0 0 10px; padding: 10px 12px 10px 30px; background: var(--soft, #e6f0ec); border-radius: 10px; font-size: 0.88rem; line-height: 1.7; }
+.login-steps b { color: var(--accent); }
 
 
 .pages { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1282,6 +1284,16 @@ refreshAuth();
   new MutationObserver(check).observe(form, { attributes: true, attributeFilter: ['hidden'] });
   const who = document.getElementById('whoEmail');
   if (who) new MutationObserver(check).observe(who, { childList: true, characterData: true, subtree: true });
+})();
+
+// 로그인 전: "지원하기 버튼이 어디 있나요" 문의가 반복돼서, 지원까지의 순서를 로그인 칸 위에 보여 준다
+(function loginSteps() {
+  const out = document.getElementById('signedOut');
+  if (!out) return;
+  const box = document.createElement('ol');
+  box.className = 'login-steps';
+  box.innerHTML = '<li>이메일을 쓰고 <b>동의에 체크</b></li><li><b>로그인 링크 받기</b> 누르기</li><li>메일함(스팸함 포함)에서 <b>링크 누르기</b></li><li>이 페이지로 돌아오면 <b>"이 점수로 지원하기"</b> 버튼이 나와요</li>';
+  out.prepend(box);
 })();
 
 // 실시간 익명 피드 — 모든 페이지 공통. 읽기는 누구나, 쓰기·신고는 로그인한 사람만.
