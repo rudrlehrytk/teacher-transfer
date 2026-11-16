@@ -126,9 +126,21 @@ function calc(input) {
   // (원문에 중복 제한 규정이 없음 — 2026-11-09 사용자 확인. 상한이 있는 지원청은 bonusCapPct로 처리)
   const pctTxt = (rate) => Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
     ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
+  // 신설교 등 기한이 있는 을구역: 끝나는 날까지 근무한 기간만 구역 가산 (끝나는 날 포함 → 다음 날 0시 기준으로 셈)
+  let zoneBase = base;
+  const until = parseDate(input.regionUntil);
+  if (until && zr > 0) {
+    const next = new Date(Date.UTC(until.y, until.m - 1, until.d + 1));
+    const untilNext = { y: next.getUTCFullYear(), m: next.getUTCMonth() + 1, d: next.getUTCDate() };
+    if (cmp(untilNext, ref) < 0) {
+      const from = out.tukReset ? TUK_DATE : (prev && cmp(prev, start) < 0 ? prev : start);
+      zoneBase = cmp(untilNext, from) <= 0 ? 0 : Math.min(base, roundMonths(serviceMD(from, untilNext, input.exclusions)));
+      out.warnings.push(`지역가산은 ${until.y}.${until.m}.${until.d}.까지 근무한 ${fmtYM(zoneBase)}에만 넣었어요. 그 뒤 근무는 구역 가산이 없어요.`);
+    }
+  }
   if (zr > 0) {
     const name = { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone];
-    add(`지역가산(${input.regionLabel || name})`, base * zr, `현임교 ${base}개월 × ${pctTxt(zr)}`);
+    add(`지역가산(${input.regionLabel || name})`, zoneBase * zr, `현임교 ${zoneBase}개월 × ${pctTxt(zr)}${zoneBase < base ? ` (${until.y}.${until.m}.${until.d}.까지)` : ''}`);
   }
   if (sr > 0) add(`지역가산(${input.smallLabel || '5학급 이하·분교장'})`, base * sr, `현임교 ${base}개월 × ${pctTxt(sr)}`);
   if (zr > 0 && sr > 0) out.warnings.push('구역 지역가산과 학교 규모 가산을 함께 더했어요(원문에 중복 제한 규정이 없어요). 실제 처리는 학교에 한 번 확인해 주세요.');

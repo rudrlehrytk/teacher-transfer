@@ -265,6 +265,8 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
             </select></div></div>
           <div class="row"><span class="lab">학교 규모</span>
             <div class="ctl"><label class="check"><input type="checkbox" id="smallSchool"> 5학급 이하 학교 또는 분교장 (30%)</label></div></div>
+          <div class="row" id="regionUntilRow"><label for="regionUntil">지역가산 끝나는 날 <span class="hint">신설교처럼 <b>정해진 기간만 을구역(가산 대상)</b>인 학교라면, 그 기간이 끝나는 날(예: 개교 3년 뒤 2월 28일)을 넣으세요. 그 날까지 근무한 기간만 구역 지역가산을 받아요. 해당 없으면 비워 두세요.</span></label>
+            <div class="ctl"><input type="date" id="regionUntil"></div></div>
           <div class="row" id="gapRow"><label for="gapStart">이 지원청 갑구역 근무 시작일<span class="hint">10년이면 갑 만기. 특구역에서 갑구역으로 바뀐 학교는 특구역 근무 시작일을 넣으세요(특구역 기간 포함 10년). 지원청이 바뀌면 다시 셉니다.</span></label>
             <div class="ctl"><input type="date" id="gapStart">
               <label class="check"><input type="checkbox" id="gapExempt"> 58세 이상 등 계속근무 대상</label>
@@ -574,9 +576,21 @@ function calc(input) {
   // (원문에 중복 제한 규정이 없음 — 2026-11-09 사용자 확인. 상한이 있는 지원청은 bonusCapPct로 처리)
   const pctTxt = (rate) => Math.abs(rate * 12 - Math.round(rate * 12)) < 1e-9 && Math.round(rate * 100) !== rate * 100
     ? `1년당 ${Math.round(rate * 12)}월` : `${Math.round(rate * 100)}%`;
+  // 신설교 등 기한이 있는 을구역: 끝나는 날까지 근무한 기간만 구역 가산 (끝나는 날 포함 → 다음 날 0시 기준으로 셈)
+  let zoneBase = base;
+  const until = parseDate(input.regionUntil);
+  if (until && zr > 0) {
+    const next = new Date(Date.UTC(until.y, until.m - 1, until.d + 1));
+    const untilNext = { y: next.getUTCFullYear(), m: next.getUTCMonth() + 1, d: next.getUTCDate() };
+    if (cmp(untilNext, ref) < 0) {
+      const from = out.tukReset ? TUK_DATE : (prev && cmp(prev, start) < 0 ? prev : start);
+      zoneBase = cmp(untilNext, from) <= 0 ? 0 : Math.min(base, roundMonths(serviceMD(from, untilNext, input.exclusions)));
+      out.warnings.push(`지역가산은 ${until.y}.${until.m}.${until.d}.까지 근무한 ${fmtYM(zoneBase)}에만 넣었어요. 그 뒤 근무는 구역 가산이 없어요.`);
+    }
+  }
   if (zr > 0) {
     const name = { eul: '을구역', byeongDaRa: '병구역 다·라', byeongGaNa: '병구역 가·나' }[input.zone];
-    add(`지역가산(${input.regionLabel || name})`, base * zr, `현임교 ${base}개월 × ${pctTxt(zr)}`);
+    add(`지역가산(${input.regionLabel || name})`, zoneBase * zr, `현임교 ${zoneBase}개월 × ${pctTxt(zr)}${zoneBase < base ? ` (${until.y}.${until.m}.${until.d}.까지)` : ''}`);
   }
   if (sr > 0) add(`지역가산(${input.smallLabel || '5학급 이하·분교장'})`, base * sr, `현임교 ${base}개월 × ${pctTxt(sr)}`);
   if (zr > 0 && sr > 0) out.warnings.push('구역 지역가산과 학교 규모 가산을 함께 더했어요(원문에 중복 제한 규정이 없어요). 실제 처리는 학교에 한 번 확인해 주세요.');
@@ -738,7 +752,7 @@ function gather() {
   }));
   return {
     refDate: $('refDate').value, startDate: $('startDate').value, prevStart: $('prevStart').value, exclusions,
-    zone: $('zone').value, smallSchool: $('smallSchool').checked,
+    zone: $('zone').value, smallSchool: $('smallSchool').checked, regionUntil: $('regionUntil').value,
     gapStart: $('gapStart').value, gapExempt: $('gapExempt').checked, wasTuk: $('wasTuk').checked,
     wishRegion: $('wishRegion').value,
     bujangFull: num('bujangFull'), bujangHalf: num('bujangHalf'),
@@ -791,7 +805,7 @@ $('btnClear').addEventListener('click', () => {
   $('f').querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
   $('f').querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
   $('wasTuk').checked = !!window.TUK_DEFAULT;
-  $('startDate').value = ''; $('prevStart').value = ''; $('gapStart').value = ''; $('zone').value = 'gap';
+  $('startDate').value = ''; $('prevStart').value = ''; $('regionUntil').value = ''; $('gapStart').value = ''; $('zone').value = 'gap';
   $('hyeoksin').value = 'none'; $('wishRegion').value = ''; $('spouseRegion').value = '';
   $('exList').innerHTML = '';
   $('sampleNote').hidden = true;
