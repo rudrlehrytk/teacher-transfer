@@ -8,6 +8,8 @@ const feedMock=`
     if(name==='post_feed'){ window.__feed.push({id:window.__feed.length+1,anon_no:7,body:args.p_body,tag:args.p_tag,score_label:args.p_score,created_at:new Date().toISOString(),is_mine:true,reports:0}); return {data:1,error:null}; }
     if(name==='delete_feed'){ window.__feed=window.__feed.filter(p=>p.id!==args.p_id); return {data:null,error:null}; }
     if(name==='report_feed') return {data:null,error:null};
+    if(name==='get_feed_replies') return {data:(window.__rep||[]).filter(r=>r.parent===args.p_parent),error:null};
+    if(name==='post_feed_reply'){ (window.__rep=window.__rep||[]).push({id:100+window.__rep.length,parent:args.p_parent,anon_no:7,body:args.p_body,created_at:new Date().toISOString(),is_mine:true,is_op:false}); const p=window.__feed.find(x=>x.id===args.p_parent); p.reply_count=(p.reply_count||0)+1; return {data:1,error:null}; }
     return null; }`;
 const mock=fs.readFileSync('test/mock-supabase.js','utf8').replace('(function () {','(function () {'+feedMock).replace('async rpc() {','async rpc(n,a) { const f=await feedRpc(n,a); if(f) return f;');
 (async()=>{const b=await chromium.launch();
@@ -25,6 +27,11 @@ for (const [w,label] of [[1600,'wide'],[420,'phone']]) {
   await p.click('#feedSend');await p.waitForTimeout(400);
   console.log(' after post',await p.locator('.feed-item').count(),'|',(await p.locator('.feed-item').first().textContent()).replace(/\s+/g,' ').trim());
   await p.fill('#feedBody','연락주세요 010-1234-5678');await p.click('#feedSend');await p.waitForTimeout(200);console.log(' pii:',await p.textContent('#feedMsg'));
+  await p.locator('.feed-item').last().locator('[data-act=toggle]').click();await p.waitForTimeout(300);
+  const ta=p.locator('.feed-reply-form textarea');await ta.fill('저도 비슷해요');
+  await p.waitForTimeout(10500); console.log(' draft kept after poll:',await ta.inputValue());
+  await p.locator('.feed-reply-form button').click();await p.waitForTimeout(400);
+  console.log(' replies',await p.locator('.feed-reply').count(),'|',(await p.locator('.feed-item').last().locator('[data-act=toggle]').textContent()));
   await p.selectOption('#feedFilter','관외 · 수원');await p.waitForTimeout(300);console.log(' filter 수원',await p.locator('.feed-item').count());
   await p.selectOption('#feedFilter','');await p.waitForTimeout(300);
   await p.locator('.feed-item.mine button[data-act=del]').click();await p.locator('.feed-item.mine button[data-act=del]').click();await p.waitForTimeout(300);
