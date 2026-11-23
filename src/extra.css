@@ -103,3 +103,17 @@ input[type="email"] { font: inherit; color: var(--ink); background: var(--bg); b
 .feed-reply-form textarea { min-height: 40px; }
 .feed-reply-form .btn { padding: 7px 12px; font-size: 0.85rem; }
 .feed-reply-form .feed-msg { grid-column: 1 / -1; }
+/* 공개 지원 현황 */
+.counts-sum { margin: 0 0 8px; font-size: 0.85rem; color: var(--muted); }
+.counts-wrap { overflow-x: auto; }
+.counts-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.counts-table th, .counts-table td { padding: 8px 10px; border-top: 1px solid var(--line); text-align: left; }
+.counts-table th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.counts-table th small { display: block; font-weight: 400; }
+.counts-table td.n { white-space: nowrap; position: relative; }
+.counts-table td.n .bar { display: inline-block; height: 8px; max-width: 80px; min-width: 4px; background: var(--accent); opacity: .35; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+.counts-more { margin-top: 8px; }
+.counts .counts-sum, .counts .counts-wrap { padding: 0 18px; }
+.counts .counts-sum { padding-top: 12px; }
+.counts .counts-more { margin: 8px 18px 16px; }
+.counts .counts-wrap { padding-bottom: 12px; }
